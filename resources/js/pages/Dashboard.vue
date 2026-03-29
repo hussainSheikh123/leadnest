@@ -7,6 +7,7 @@ import {
     ChevronRight,
     Download,
     Filter,
+    Inbox,
     Mail,
     Phone,
     Search,
@@ -16,7 +17,7 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
@@ -57,7 +58,7 @@ type Lead = {
 const page = usePage();
 const auth = computed(() => page.props.auth);
 
-const leads: Lead[] = [
+const demoLeads: Lead[] = [
     {
         id: 1,
         username: 'amna.r',
@@ -228,10 +229,31 @@ const leads: Lead[] = [
     },
 ];
 
+const leads = computed(() => {
+    const pageLeads = (page.props as { leads?: Lead[] }).leads;
+
+    return Array.isArray(pageLeads) ? pageLeads : demoLeads;
+});
+
 const searchTerm = ref('');
 const selectedSource = ref<'All' | LeadSource>('All');
 const selectedStatus = ref<'All' | LeadStatus>('All');
-const selectedLeadId = ref(leads[0]?.id ?? 0);
+const selectedLeadId = ref(0);
+
+watch(
+    leads,
+    (records) => {
+        if (records.length === 0) {
+            selectedLeadId.value = 0;
+            return;
+        }
+
+        if (!records.some((lead) => lead.id === selectedLeadId.value)) {
+            selectedLeadId.value = records[0].id;
+        }
+    },
+    { immediate: true },
+);
 
 const sourceOptions: Array<'All' | LeadSource> = [
     'All',
@@ -252,7 +274,7 @@ const statusOptions: Array<'All' | LeadStatus> = [
 const filteredLeads = computed(() => {
     const term = searchTerm.value.trim().toLowerCase();
 
-    return leads.filter((lead) => {
+    return leads.value.filter((lead) => {
         const matchesTerm =
             term.length === 0 ||
             [
@@ -288,18 +310,25 @@ const selectedLead = computed(
         null,
 );
 
-const totalLeads = computed(() => leads.length);
+const totalLeads = computed(() => leads.value.length);
 const hotLeads = computed(
-    () => leads.filter((lead) => lead.score >= 90).length,
+    () => leads.value.filter((lead) => lead.score >= 90).length,
 );
 const responseDue = computed(
-    () => leads.filter((lead) => lead.needsReply).length,
+    () => leads.value.filter((lead) => lead.needsReply).length,
 );
-const averageScore = computed(() =>
-    Math.round(
-        leads.reduce((total, lead) => total + lead.score, 0) / leads.length,
-    ),
-);
+const averageScore = computed(() => {
+    if (leads.value.length === 0) {
+        return 0;
+    }
+
+    return Math.round(
+        leads.value.reduce((total, lead) => total + lead.score, 0) /
+            leads.value.length,
+    );
+});
+
+const hasNoLeads = computed(() => totalLeads.value === 0);
 
 const summaryCards = computed(() => [
     {
@@ -350,7 +379,7 @@ const pipelineStages = computed(() => {
 
     return base.map((stage) => ({
         ...stage,
-        count: leads.filter((lead) => lead.status === stage.key).length,
+        count: leads.value.filter((lead) => lead.status === stage.key).length,
     }));
 });
 
@@ -358,7 +387,9 @@ const sourcePerformance = computed(() => {
     const grouped = sourceOptions
         .filter((source): source is LeadSource => source !== 'All')
         .map((source) => {
-            const sourceLeads = leads.filter((lead) => lead.source === source);
+            const sourceLeads = leads.value.filter(
+                (lead) => lead.source === source,
+            );
             const qualified = sourceLeads.filter(
                 (lead) =>
                     lead.status === 'Qualified' ||
@@ -540,6 +571,27 @@ const priorityClasses: Record<LeadPriority, string> = {
             <main
                 class="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8"
             >
+                <section
+                    v-if="hasNoLeads"
+                    class="rounded-[34px] border border-zinc-200 bg-white px-6 py-12 text-center shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:px-8"
+                >
+                    <div
+                        class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-200 bg-[#faf9f6] text-zinc-700"
+                    >
+                        <Inbox class="h-6 w-6" />
+                    </div>
+                    <h2
+                        class="mt-5 text-2xl font-semibold tracking-tight text-zinc-950"
+                    >
+                        No leads yet.
+                    </h2>
+                    <p
+                        class="mx-auto mt-2 max-w-xl text-sm leading-7 text-zinc-600"
+                    >
+                        They will appear here once assigned.
+                    </p>
+                </section>
+
                 <section
                     class="overflow-hidden rounded-[34px] border border-zinc-200 bg-white shadow-[0_24px_70px_rgba(24,24,27,0.06)]"
                 >
@@ -769,9 +821,12 @@ const priorityClasses: Record<LeadPriority, string> = {
                                     class="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600"
                                 >
                                     {{
-                                        Math.round(
-                                            (stage.count / totalLeads) * 100,
-                                        )
+                                        totalLeads === 0
+                                            ? 0
+                                            : Math.round(
+                                                  (stage.count / totalLeads) *
+                                                      100,
+                                              )
                                     }}%
                                 </div>
                             </div>

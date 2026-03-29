@@ -111,6 +111,52 @@ const showConfirmPassword = ref(false);
 
                                     <div class="space-y-2">
                                         <Label
+                                            for="phone"
+                                            class="text-sm font-medium text-zinc-950"
+                                        >
+                                            Phone number
+                                        </Label>
+                                        <div
+                                            class="grid grid-cols-[120px_1fr] gap-3"
+                                        >
+                                            <select
+                                                id="phone_country_code"
+                                                name="phone_country_code"
+                                                required
+                                                :tabindex="2"
+                                                class="h-12 rounded-2xl border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none focus:border-zinc-950"
+                                            >
+                                                <option value="+971">
+                                                    +971
+                                                </option>
+                                                <option value="+966">
+                                                    +966
+                                                </option>
+                                                <option value="+973">
+                                                    +973
+                                                </option>
+                                                <option value="+974">
+                                                    +974
+                                                </option>
+                                                <option value="+965">
+                                                    +965
+                                                </option>
+                                            </select>
+                                            <Input
+                                                id="phone"
+                                                type="tel"
+                                                required
+                                                :tabindex="3"
+                                                autocomplete="tel-national"
+                                                name="phone"
+                                                placeholder="50 123 4567"
+                                                class="h-12 rounded-2xl border-zinc-200 bg-white text-zinc-950 placeholder:text-zinc-400 focus-visible:border-zinc-950 focus-visible:ring-0"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label
                                             for="email"
                                             class="text-sm font-medium text-zinc-950"
                                         >
@@ -120,7 +166,7 @@ const showConfirmPassword = ref(false);
                                             id="email"
                                             type="email"
                                             required
-                                            :tabindex="2"
+                                            :tabindex="4"
                                             autocomplete="email"
                                             name="email"
                                             placeholder="Enter your work email address"
@@ -146,7 +192,7 @@ const showConfirmPassword = ref(false);
                                                         : 'password'
                                                 "
                                                 required
-                                                :tabindex="3"
+                                                :tabindex="5"
                                                 autocomplete="new-password"
                                                 placeholder="Create a password"
                                                 class="h-12 rounded-2xl border-zinc-200 bg-white pr-14 text-zinc-950 placeholder:text-zinc-400 focus-visible:border-zinc-950 focus-visible:ring-0"
@@ -188,7 +234,7 @@ const showConfirmPassword = ref(false);
                                                         : 'password'
                                                 "
                                                 required
-                                                :tabindex="4"
+                                                :tabindex="6"
                                                 autocomplete="new-password"
                                                 placeholder="Confirm your password"
                                                 class="h-12 rounded-2xl border-zinc-200 bg-white pr-14 text-zinc-950 placeholder:text-zinc-400 focus-visible:border-zinc-950 focus-visible:ring-0"
@@ -219,7 +265,7 @@ const showConfirmPassword = ref(false);
                                     <button
                                         type="submit"
                                         class="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-70"
-                                        tabindex="5"
+                                        tabindex="7"
                                         :disabled="processing"
                                         data-test="register-user-button"
                                     >
@@ -234,7 +280,7 @@ const showConfirmPassword = ref(false);
                                         <Link
                                             :href="login()"
                                             class="ml-1 cursor-pointer font-semibold text-zinc-950 underline underline-offset-4"
-                                            :tabindex="6"
+                                            :tabindex="8"
                                         >
                                             Log in
                                         </Link>

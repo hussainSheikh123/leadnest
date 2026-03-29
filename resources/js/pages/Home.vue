@@ -9,7 +9,7 @@ import {
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, home, login, register } from '@/routes';
 
 withDefaults(
     defineProps<{
@@ -23,7 +23,7 @@ withDefaults(
 const navItems = [
     { label: 'How it works', href: '#how-it-works' },
     { label: 'Pricing', href: '#pricing' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Contact', href: '/contact' },
 ];
 
 const heroAnnouncement = 'Meet the lead workspace, tuned for outbound teams';
@@ -31,24 +31,42 @@ const heroAnnouncement = 'Meet the lead workspace, tuned for outbound teams';
 const steps = [
     {
         step: '01',
-        title: 'Filter with intent',
+        title: 'Submit a lead',
         description:
-            'Use cleaner targeting so every shortlist starts with the right accounts.',
+            'Upload or enter a lead with key details so LeadNest can evaluate fit quickly.',
         icon: ListFilter,
     },
     {
         step: '02',
-        title: 'Qualify faster',
+        title: 'Get matched',
         description:
-            'Scan records in a low-noise layout built for operators and sales teams.',
+            'Our matching flow routes each lead to the right buyer profile based on quality and relevance.',
         icon: ShieldCheck,
     },
     {
         step: '03',
-        title: 'Move into action',
+        title: 'Buyer notified',
         description:
-            'Export and hand off leads without turning the flow into spreadsheet clutter.',
+            'Once matched, the buyer is notified instantly so the team can respond without delays.',
         icon: Workflow,
+    },
+];
+
+const testimonials = [
+    {
+        name: 'Sarah Khan',
+        company: 'Northline Media',
+        quote: 'LeadNest made our lead handoff process much cleaner in week one.',
+    },
+    {
+        name: 'Ahmed Raza',
+        company: 'GrowthPilot UAE',
+        quote: 'The matching flow helped our buyers respond faster to high-fit leads.',
+    },
+    {
+        name: 'Mariam Yusuf',
+        company: 'AdScale Labs',
+        quote: 'Simple layout, fast onboarding, and less confusion for new team members.',
     },
 ];
 
@@ -254,7 +272,7 @@ const displayedPricingPlans = computed(() =>
                                     Start for free
                                 </Link>
                                 <a
-                                    href="#contact"
+                                    href="/contact"
                                     class="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-950 transition hover:border-zinc-950"
                                 >
                                     Talk to sales
@@ -277,16 +295,14 @@ const displayedPricingPlans = computed(() =>
                             <h2
                                 class="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl lg:text-5xl"
                             >
-                                A lead-gen journey that feels structured, not
-                                improvised.
+                                A simple workflow your team can run every day.
                             </h2>
                             <p
                                 class="mt-4 max-w-2xl text-base leading-8 text-zinc-600"
                             >
-                                The first release does not need complexity
-                                everywhere. It needs the right sequence, strong
-                                trust surfaces, and disciplined spacing across
-                                each section.
+                                From submission to buyer notification, every
+                                step stays clear and predictable for operators
+                                and sales teams.
                             </p>
                         </div>
 
@@ -326,6 +342,50 @@ const displayedPricingPlans = computed(() =>
                                 >
                                     {{ item.description }}
                                 </p>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+
+                <section
+                    id="testimonials"
+                    class="border-b border-zinc-200/70 bg-[#f8f7f4] px-4 py-12 sm:px-6 lg:px-8 lg:py-16"
+                >
+                    <div class="mx-auto max-w-7xl">
+                        <div class="mx-auto max-w-3xl text-center">
+                            <p
+                                class="text-[11px] font-semibold tracking-[0.28em] text-zinc-500 uppercase"
+                            >
+                                Testimonials
+                            </p>
+                            <h2
+                                class="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl"
+                            >
+                                What early teams are saying.
+                            </h2>
+                        </div>
+
+                        <div class="mt-10 grid gap-5 md:grid-cols-3">
+                            <article
+                                v-for="item in testimonials"
+                                :key="item.name"
+                                class="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-[0_16px_40px_rgba(24,24,27,0.05)]"
+                            >
+                                <p
+                                    class="text-base leading-7 font-medium text-zinc-700"
+                                >
+                                    "{{ item.quote }}"
+                                </p>
+                                <div class="mt-6">
+                                    <div
+                                        class="text-sm font-semibold text-zinc-950"
+                                    >
+                                        {{ item.name }}
+                                    </div>
+                                    <div class="text-sm text-zinc-500">
+                                        {{ item.company }}
+                                    </div>
+                                </div>
                             </article>
                         </div>
                     </div>
@@ -453,7 +513,7 @@ const displayedPricingPlans = computed(() =>
                                 </ul>
 
                                 <a
-                                    href="#contact"
+                                    href="/contact"
                                     :class="[
                                         'mt-auto inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition',
                                         plan.highlighted
@@ -567,26 +627,58 @@ const displayedPricingPlans = computed(() =>
             </main>
 
             <footer class="border-t border-zinc-200/70 bg-[#f6f5f1]">
-                <div
-                    class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-zinc-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"
-                >
-                    <p>(c) 2026 LeadNest. All rights reserved.</p>
-                    <div class="flex items-center gap-5">
-                        <a
-                            href="#how-it-works"
-                            class="transition hover:text-zinc-900"
-                            >How it works</a
+                <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                    <div
+                        class="flex flex-col gap-6 border-b border-zinc-200 pb-6 md:flex-row md:items-center md:justify-between"
+                    >
+                        <Link
+                            :href="home()"
+                            class="inline-flex items-center gap-3"
                         >
-                        <a
-                            href="#pricing"
-                            class="transition hover:text-zinc-900"
-                            >Pricing</a
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-950 text-xs font-semibold text-white"
+                            >
+                                LN
+                            </div>
+                            <div>
+                                <div
+                                    class="text-sm font-semibold text-zinc-950"
+                                >
+                                    LeadNest
+                                </div>
+                                <div
+                                    class="text-[10px] tracking-[0.22em] text-zinc-500 uppercase"
+                                >
+                                    Lead generation OS
+                                </div>
+                            </div>
+                        </Link>
+
+                        <div
+                            class="flex flex-wrap items-center gap-5 text-sm text-zinc-600"
                         >
-                        <a
-                            href="#contact"
-                            class="transition hover:text-zinc-900"
-                            >Contact</a
-                        >
+                            <a
+                                href="#how-it-works"
+                                class="transition hover:text-zinc-900"
+                                >How it works</a
+                            >
+                            <a
+                                href="#pricing"
+                                class="transition hover:text-zinc-900"
+                                >Pricing</a
+                            >
+                            <Link
+                                href="/contact"
+                                class="transition hover:text-zinc-900"
+                                >Contact</Link
+                            >
+                        </div>
+                    </div>
+
+                    <div
+                        class="pt-5 text-xs font-medium tracking-wide text-zinc-500 sm:text-sm"
+                    >
+                        &copy; 2026 LeadNest. All rights reserved.
                     </div>
                 </div>
             </footer>

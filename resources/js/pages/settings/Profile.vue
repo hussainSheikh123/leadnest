@@ -8,6 +8,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { send } from '@/routes/verification';
 
@@ -98,8 +99,10 @@ const user = computed(() => page.props.auth.user);
                             :disabled="processing"
                             class="cursor-pointer rounded-2xl bg-zinc-950 px-5 text-white hover:bg-black"
                             data-test="update-profile-button"
-                            >Save</Button
                         >
+                            <Spinner v-if="processing" />
+                            <span v-else>Save</span>
+                        </Button>
 
                         <Transition
                             enter-active-class="transition ease-in-out"
