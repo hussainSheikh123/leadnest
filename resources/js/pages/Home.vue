@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
                 class="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8"
             >
                 <div
-                    class="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-[rgba(92,56,33,0.14)] bg-[rgba(46,28,19,0.76)] px-4 py-3 shadow-[0_26px_70px_rgba(54,30,14,0.18)] backdrop-blur-2xl sm:px-6"
+                    class="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-[rgba(92,56,33,0.14)] bg-[rgba(46,28,19,0.9)] px-4 py-3 shadow-[0_26px_70px_rgba(54,30,14,0.18)] sm:px-6"
                 >
                     <Link :href="home()" class="flex items-center gap-3">
                         <div
@@ -1991,6 +1991,11 @@ onBeforeUnmount(() => {
     isolation: isolate;
 }
 
+main > section + section {
+    content-visibility: auto;
+    contain-intrinsic-size: 960px;
+}
+
 .landing-mesh {
     background:
         radial-gradient(
@@ -2123,7 +2128,6 @@ onBeforeUnmount(() => {
             rgba(255, 255, 255, 0) 74%
         );
     filter: blur(16px);
-    animation: hero-streak-drift 14s ease-in-out infinite;
 }
 
 .hero-atmosphere::after {
@@ -2180,7 +2184,6 @@ onBeforeUnmount(() => {
         rgba(255, 195, 136, 0) 72%
     );
     filter: blur(36px);
-    animation: hero-stage-core-pulse 7.5s ease-in-out infinite;
 }
 
 .hero-stage-halo {
@@ -2192,7 +2195,6 @@ onBeforeUnmount(() => {
         rgba(255, 214, 168, 0) 74%
     );
     filter: blur(46px);
-    animation: hero-stage-breathe 9s ease-in-out infinite;
 }
 
 .hero-stage-vignette {
@@ -2222,7 +2224,6 @@ onBeforeUnmount(() => {
     filter: blur(22px);
     opacity: 0.65;
     transform: rotate(-10deg);
-    animation: hero-ribbon-float 11s ease-in-out infinite;
     pointer-events: none;
 }
 
@@ -2292,7 +2293,6 @@ onBeforeUnmount(() => {
         0 56px 160px rgba(72, 43, 20, 0.3),
         0 0 90px rgba(255, 203, 147, 0.16),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(24px);
 }
 
 .hero-device-shell::after {
@@ -2378,8 +2378,9 @@ onBeforeUnmount(() => {
 }
 
 .floating-card {
-    animation: float-card 8.8s ease-in-out infinite;
+    animation: float-card 12s ease-in-out infinite;
     will-change: transform;
+    backdrop-filter: blur(8px);
 }
 
 .floating-card-right {
@@ -2437,7 +2438,6 @@ onBeforeUnmount(() => {
     box-shadow:
         0 26px 70px rgba(74, 44, 21, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(16px);
     isolation: isolate;
 }
 
@@ -2726,7 +2726,7 @@ onBeforeUnmount(() => {
 
 .story-support-screen {
     transform: rotate(-5deg);
-    animation: float-card 10.5s ease-in-out infinite;
+    animation: float-card 14s ease-in-out infinite;
     animation-delay: 1.1s;
 }
 
@@ -2964,50 +2964,6 @@ onBeforeUnmount(() => {
     }
     50% {
         transform: translate3d(0, -12px, 0);
-    }
-}
-
-@keyframes hero-streak-drift {
-    0%,
-    100% {
-        transform: translate3d(0, 0, 0) scale(1);
-    }
-    50% {
-        transform: translate3d(1.5%, 2%, 0) scale(1.04);
-    }
-}
-
-@keyframes hero-ribbon-float {
-    0%,
-    100% {
-        transform: translate3d(0, 0, 0) rotate(-10deg);
-    }
-    50% {
-        transform: translate3d(3%, -6%, 0) rotate(-6deg);
-    }
-}
-
-@keyframes hero-stage-breathe {
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.9;
-    }
-    50% {
-        transform: scale(1.04);
-        opacity: 1;
-    }
-}
-
-@keyframes hero-stage-core-pulse {
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.86;
-    }
-    50% {
-        transform: scale(1.06);
-        opacity: 1;
     }
 }
 
