@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -9,9 +11,11 @@
 
 @theme inline {
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        Manrope, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display:
+        Sora, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -83,10 +87,16 @@
     body,
     html {
         --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+            Manrope, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        --font-display:
+            Sora, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
         scroll-behavior: smooth;
+    }
+
+    .font-display {
+        font-family: var(--font-display);
     }
 }
 
@@ -167,7 +177,50 @@
     * {
         @apply border-border outline-ring/50;
     }
+    html {
+        font-family: var(--font-sans);
+        font-feature-settings:
+            'ss01' 1,
+            'cv02' 1,
+            'cv03' 1;
+        text-rendering: optimizeLegibility;
+    }
     body {
         @apply bg-background text-foreground;
+        font-family: var(--font-sans);
+        letter-spacing: -0.012em;
+        font-feature-settings:
+            'ss01' 1,
+            'cv02' 1,
+            'cv03' 1;
+    }
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+        letter-spacing: -0.05em;
+        line-height: 1.02;
+        font-weight: 600;
+    }
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-display);
+        letter-spacing: -0.035em;
+        line-height: 1.08;
+        font-weight: 600;
+    }
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+    p,
+    li {
+        letter-spacing: -0.012em;
+    }
+    strong {
+        font-weight: 700;
     }
 }

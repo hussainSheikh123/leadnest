@@ -32,6 +32,12 @@ import { home } from '@/routes';
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Negotiation';
 type LeadSource = 'LinkedIn' | 'Website' | 'Referral' | 'Outbound';
 type LeadPriority = 'High' | 'Medium' | 'Low';
+type SavedViewKey =
+    | 'all'
+    | 'reply'
+    | 'priority'
+    | 'qualified'
+    | 'founder';
 
 type Lead = {
     id: number;
@@ -53,6 +59,26 @@ type Lead = {
     nextStep: string;
     tags: string[];
     needsReply: boolean;
+};
+
+type LeadMeta = {
+    createdAt: string;
+    ownershipSince: string;
+    nextActionDue: string;
+    reminderAt: string;
+    statusContext: string;
+};
+
+type LeadNote = {
+    author: string;
+    time: string;
+    body: string;
+};
+
+type LeadActivityItem = {
+    title: string;
+    detail: string;
+    time: string;
 };
 
 const page = usePage();
@@ -235,7 +261,238 @@ const leads = computed(() => {
     return Array.isArray(pageLeads) ? pageLeads : demoLeads;
 });
 
+const savedViews = [
+    {
+        key: 'all' as SavedViewKey,
+        label: 'All leads',
+        description: 'Full working queue',
+    },
+    {
+        key: 'reply' as SavedViewKey,
+        label: 'Reply due',
+        description: 'Needs follow-up today',
+    },
+    {
+        key: 'priority' as SavedViewKey,
+        label: 'High priority',
+        description: 'Hot and urgent accounts',
+    },
+    {
+        key: 'qualified' as SavedViewKey,
+        label: 'Qualified + negotiation',
+        description: 'Late-stage review',
+    },
+    {
+        key: 'founder' as SavedViewKey,
+        label: 'Founder-led',
+        description: 'Executive attention accounts',
+    },
+] as const;
+
+const leadMetaById: Record<number, LeadMeta> = {
+    1: {
+        createdAt: 'Today, 8:20 AM',
+        ownershipSince: 'Owned by Areeb for 3h',
+        nextActionDue: 'Today, 4:00 PM',
+        reminderAt: 'Follow up by 4:00 PM',
+        statusContext: 'Qualified after inbound request and pricing interest.',
+    },
+    2: {
+        createdAt: 'Yesterday, 2:15 PM',
+        ownershipSince: 'Owned by Mehak for 1 day',
+        nextActionDue: 'Tomorrow, 11:30 AM',
+        reminderAt: 'Review tomorrow',
+        statusContext: 'Contacted and waiting for pricing summary review.',
+    },
+    3: {
+        createdAt: 'Today, 9:10 AM',
+        ownershipSince: 'Owned by Areeb for 2h',
+        nextActionDue: 'Today, 5:30 PM',
+        reminderAt: 'Send case study today',
+        statusContext: 'Referral lead with strong agency fit and quick response window.',
+    },
+    4: {
+        createdAt: 'Today, 11:05 AM',
+        ownershipSince: 'Owned by Hoor for 20m',
+        nextActionDue: 'Today, 6:00 PM',
+        reminderAt: 'Verify fit today',
+        statusContext: 'Fresh outbound record pending decision-maker validation.',
+    },
+    5: {
+        createdAt: 'Yesterday, 4:45 PM',
+        ownershipSince: 'Owned by Mehak for 18h',
+        nextActionDue: 'Today, 3:30 PM',
+        reminderAt: 'Proposal follow-up at 3:30 PM',
+        statusContext: 'Negotiation stage after proposal delivery and warm reply.',
+    },
+    6: {
+        createdAt: 'Today, 7:50 AM',
+        ownershipSince: 'Owned by Hoor for 4h',
+        nextActionDue: 'Today, 2:00 PM',
+        reminderAt: 'Founder intro at 2:00 PM',
+        statusContext: 'Founder-led account with high urgency and clear buying signal.',
+    },
+    7: {
+        createdAt: '3 days ago, 1:10 PM',
+        ownershipSince: 'Owned by Areeb for 3 days',
+        nextActionDue: 'Tomorrow, 9:00 AM',
+        reminderAt: 'Nurture tomorrow',
+        statusContext: 'Contacted lead that needs re-engagement before it cools further.',
+    },
+    8: {
+        createdAt: 'Today, 8:55 AM',
+        ownershipSince: 'Owned by Mehak for 5h',
+        nextActionDue: 'Tomorrow, 10:00 AM',
+        reminderAt: 'Prepare sample by tomorrow',
+        statusContext: 'Qualified outbound lead waiting on tailored list sample.',
+    },
+};
+
+const leadNotesById: Record<number, LeadNote[]> = {
+    1: [
+        {
+            author: 'Areeb Khan',
+            time: 'Today, 10:15 AM',
+            body: 'Asked for a qualification call and mentioned the team is comparing two vendors this week.',
+        },
+        {
+            author: 'Ops',
+            time: 'Today, 8:45 AM',
+            body: 'Inbound form included monthly lead target and team size, so fit score moved up quickly.',
+        },
+    ],
+    2: [
+        {
+            author: 'Mehak Ali',
+            time: 'Yesterday, 5:05 PM',
+            body: 'Requested a concise pricing overview rather than a full deck.',
+        },
+    ],
+    3: [
+        {
+            author: 'Areeb Khan',
+            time: 'Today, 11:00 AM',
+            body: 'Referral source says they want campaign examples before routing internally.',
+        },
+    ],
+    4: [
+        {
+            author: 'Hoor Fatima',
+            time: 'Today, 11:20 AM',
+            body: 'Need to confirm whether Fahad owns budget or is only evaluating options.',
+        },
+    ],
+    5: [
+        {
+            author: 'Mehak Ali',
+            time: 'Today, 9:30 AM',
+            body: 'Proposal landed well. Follow-up should focus on implementation scope and timing.',
+        },
+        {
+            author: 'Finance',
+            time: 'Yesterday, 6:15 PM',
+            body: 'Commercial terms are ready if they ask for annual pricing detail.',
+        },
+    ],
+    6: [
+        {
+            author: 'Hoor Fatima',
+            time: 'Today, 10:10 AM',
+            body: 'Founder asked for a direct intro and a quick list sample before the call.',
+        },
+    ],
+    7: [
+        {
+            author: 'Areeb Khan',
+            time: 'Yesterday, 4:00 PM',
+            body: 'No reply to last benchmark email. Queue for a lighter re-engagement note tomorrow morning.',
+        },
+    ],
+    8: [
+        {
+            author: 'Mehak Ali',
+            time: 'Today, 12:10 PM',
+            body: 'Strong fit, but they want the sample tailored to demand gen leadership roles first.',
+        },
+    ],
+};
+
+const leadActivityById: Record<number, LeadActivityItem[]> = {
+    1: [
+        {
+            title: 'Qualification call requested',
+            detail: 'Amna asked for times this afternoon after reviewing the overview.',
+            time: '2h ago',
+        },
+        {
+            title: 'Owner assigned',
+            detail: 'Areeb took ownership after the inbound form was scored high intent.',
+            time: '3h ago',
+        },
+    ],
+    2: [
+        {
+            title: 'Pricing note added',
+            detail: 'Requested a short summary instead of a full proposal.',
+            time: 'Yesterday',
+        },
+    ],
+    3: [
+        {
+            title: 'Referral confirmed',
+            detail: 'Source validated agency fit and introduced the buyer internally.',
+            time: '30m ago',
+        },
+        {
+            title: 'Case study queued',
+            detail: 'Campaign example is the agreed next step.',
+            time: '1h ago',
+        },
+    ],
+    4: [
+        {
+            title: 'New outbound record added',
+            detail: 'Lead entered queue from outbound list and is pending fit verification.',
+            time: 'Just now',
+        },
+    ],
+    5: [
+        {
+            title: 'Proposal follow-up scheduled',
+            detail: 'Reminder set for 3:30 PM with pricing and rollout notes ready.',
+            time: '4h ago',
+        },
+        {
+            title: 'Proposal delivered',
+            detail: 'PeakLaunch confirmed receipt and requested timing clarity.',
+            time: 'Yesterday',
+        },
+    ],
+    6: [
+        {
+            title: 'Founder intro pending',
+            detail: 'Hoor is lining up a short call and sample handoff for this afternoon.',
+            time: '1h ago',
+        },
+    ],
+    7: [
+        {
+            title: 'Re-engagement queued',
+            detail: 'Benchmark email underperformed, so the next touch is being reframed.',
+            time: '3d ago',
+        },
+    ],
+    8: [
+        {
+            title: 'Sample request added',
+            detail: 'Custom list sample requested for demand gen leadership targeting.',
+            time: '5h ago',
+        },
+    ],
+};
+
 const searchTerm = ref('');
+const selectedView = ref<SavedViewKey>('all');
 const selectedSource = ref<'All' | LeadSource>('All');
 const selectedStatus = ref<'All' | LeadStatus>('All');
 const selectedLeadId = ref(0);
@@ -271,10 +528,31 @@ const statusOptions: Array<'All' | LeadStatus> = [
     'New',
 ];
 
+const matchesSavedView = (lead: Lead): boolean => {
+    switch (selectedView.value) {
+        case 'reply':
+            return lead.needsReply;
+        case 'priority':
+            return lead.priority === 'High';
+        case 'qualified':
+            return (
+                lead.status === 'Qualified' || lead.status === 'Negotiation'
+            );
+        case 'founder':
+            return (
+                lead.role === 'Founder' || lead.tags.includes('Founder-led')
+            );
+        case 'all':
+        default:
+            return true;
+    }
+};
+
 const filteredLeads = computed(() => {
     const term = searchTerm.value.trim().toLowerCase();
 
     return leads.value.filter((lead) => {
+        const matchesView = matchesSavedView(lead);
         const matchesTerm =
             term.length === 0 ||
             [
@@ -299,9 +577,23 @@ const filteredLeads = computed(() => {
             selectedStatus.value === 'All' ||
             lead.status === selectedStatus.value;
 
-        return matchesTerm && matchesSource && matchesStatus;
+        return matchesView && matchesTerm && matchesSource && matchesStatus;
     });
 });
+
+const savedViewCounts = computed<Record<SavedViewKey, number>>(() => ({
+    all: leads.value.length,
+    reply: leads.value.filter((lead) => lead.needsReply).length,
+    priority: leads.value.filter((lead) => lead.priority === 'High').length,
+    qualified: leads.value.filter(
+        (lead) =>
+            lead.status === 'Qualified' || lead.status === 'Negotiation',
+    ).length,
+    founder: leads.value.filter(
+        (lead) =>
+            lead.role === 'Founder' || lead.tags.includes('Founder-led'),
+    ).length,
+}));
 
 const selectedLead = computed(
     () =>
@@ -309,6 +601,54 @@ const selectedLead = computed(
         filteredLeads.value[0] ||
         null,
 );
+
+const selectedLeadMeta = computed(() =>
+    selectedLead.value ? leadMetaById[selectedLead.value.id] : null,
+);
+
+const selectedLeadNotes = computed(() =>
+    selectedLead.value ? leadNotesById[selectedLead.value.id] ?? [] : [],
+);
+
+const selectedLeadActivity = computed(() =>
+    selectedLead.value ? leadActivityById[selectedLead.value.id] ?? [] : [],
+);
+
+const reminderLeads = computed(() =>
+    leads.value
+        .filter((lead) => lead.needsReply)
+        .map((lead) => ({
+            id: lead.id,
+            fullName: lead.fullName,
+            owner: lead.owner,
+            reminderAt: leadMetaById[lead.id].reminderAt,
+            nextStep: lead.nextStep,
+        })),
+);
+
+const selectedLeadActionCards = computed(() => {
+    if (!selectedLead.value || !selectedLeadMeta.value) {
+        return [];
+    }
+
+    return [
+        {
+            title: selectedLead.value.nextStep,
+            detail: `${selectedLeadMeta.value.nextActionDue} | ${selectedLead.value.owner}`,
+            icon: ArrowUpRight,
+        },
+        {
+            title: `Reply to ${selectedLead.value.fullName.split(' ')[0]}`,
+            detail: `Last touch ${selectedLead.value.lastTouch} | ${selectedLeadMeta.value.reminderAt}`,
+            icon: Mail,
+        },
+        {
+            title: `Route ${selectedLead.value.company} to sales`,
+            detail: `${selectedLead.value.source} source | ${selectedLead.value.priority} priority`,
+            icon: CheckCheck,
+        },
+    ];
+});
 
 const totalLeads = computed(() => leads.value.length);
 const hotLeads = computed(
@@ -446,19 +786,6 @@ const selectedLeadActions = computed(() => {
         },
     ];
 });
-
-const csvFields = [
-    'username',
-    'full_name',
-    'email',
-    'number',
-    'age',
-    'city',
-    'company',
-    'role',
-    'source',
-    'status',
-];
 
 const statusClasses: Record<LeadStatus, string> = {
     New: 'border border-zinc-200 bg-white text-zinc-700',
@@ -755,16 +1082,42 @@ const priorityClasses: Record<LeadPriority, string> = {
                                         class="flex items-center gap-2 text-sm text-zinc-300"
                                     >
                                         <TrendingUp class="h-4 w-4" />
-                                        Conversion note
+                                        Follow-up reminders
                                     </div>
-                                    <p
-                                        class="mt-3 text-sm leading-7 text-zinc-100/90"
-                                    >
-                                        Referral and LinkedIn leads are carrying
-                                        the best quality signal in this preview,
-                                        so the layout keeps source clarity
-                                        visible above the inbox.
-                                    </p>
+                                    <div class="mt-4 space-y-3">
+                                        <article
+                                            v-for="item in reminderLeads"
+                                            :key="item.id"
+                                            class="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3"
+                                        >
+                                            <div
+                                                class="flex items-start justify-between gap-3"
+                                            >
+                                                <div>
+                                                    <div
+                                                        class="text-sm font-semibold text-white"
+                                                    >
+                                                        {{ item.fullName }}
+                                                    </div>
+                                                    <div
+                                                        class="mt-1 text-sm text-zinc-300"
+                                                    >
+                                                        {{ item.nextStep }}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="text-right text-xs font-medium text-zinc-400"
+                                                >
+                                                    {{ item.reminderAt }}
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="mt-2 text-xs text-zinc-400"
+                                            >
+                                                Owner {{ item.owner }}
+                                            </div>
+                                        </article>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -881,23 +1234,56 @@ const priorityClasses: Record<LeadPriority, string> = {
                                         class="h-12 w-full rounded-2xl border border-zinc-200 bg-[#f6f4ef] pr-4 pl-11 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-950"
                                     />
                                 </div>
-
-                                <div class="flex flex-wrap gap-2">
+                                <div
+                                    class="flex flex-wrap gap-2 xl:max-w-[520px] xl:justify-end"
+                                >
                                     <button
-                                        v-for="source in sourceOptions"
-                                        :key="source"
+                                        v-for="view in savedViews"
+                                        :key="view.key"
                                         type="button"
-                                        @click="selectedSource = source"
+                                        @click="selectedView = view.key"
                                         :class="[
-                                            'cursor-pointer rounded-full px-3 py-2 text-xs font-semibold transition',
-                                            selectedSource === source
-                                                ? 'bg-zinc-950 text-white'
-                                                : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950 hover:text-zinc-950',
+                                            'cursor-pointer rounded-2xl border px-3 py-2 text-left transition',
+                                            selectedView === view.key
+                                                ? 'border-zinc-950 bg-zinc-950 text-white'
+                                                : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-950',
                                         ]"
                                     >
-                                        {{ source }}
+                                        <div class="text-xs font-semibold">
+                                            {{ view.label }}
+                                        </div>
+                                        <div
+                                            :class="[
+                                                'mt-1 text-[11px]',
+                                                selectedView === view.key
+                                                    ? 'text-zinc-300'
+                                                    : 'text-zinc-500',
+                                            ]"
+                                        >
+                                            {{
+                                                savedViewCounts[view.key]
+                                            }}
+                                            records | {{ view.description }}
+                                        </div>
                                     </button>
                                 </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="source in sourceOptions"
+                                    :key="source"
+                                    type="button"
+                                    @click="selectedSource = source"
+                                    :class="[
+                                        'cursor-pointer rounded-full px-3 py-2 text-xs font-semibold transition',
+                                        selectedSource === source
+                                            ? 'bg-zinc-950 text-white'
+                                            : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950 hover:text-zinc-950',
+                                    ]"
+                                >
+                                    {{ source }}
+                                </button>
                             </div>
 
                             <div class="flex flex-wrap gap-2">
@@ -920,7 +1306,7 @@ const priorityClasses: Record<LeadPriority, string> = {
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:border-zinc-950 hover:text-zinc-950"
                                 >
                                     <Filter class="h-3.5 w-3.5" />
-                                    More filters
+                                    Saved filters active
                                 </button>
                             </div>
                         </div>
@@ -1001,6 +1387,25 @@ const priorityClasses: Record<LeadPriority, string> = {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div class="mt-4 flex flex-wrap gap-2">
+                                            <span
+                                                class="rounded-full border border-zinc-200 bg-[#faf9f6] px-3 py-1.5 text-xs font-medium text-zinc-600"
+                                            >
+                                                {{ leadMetaById[lead.id].ownershipSince }}
+                                            </span>
+                                            <span
+                                                class="rounded-full border border-zinc-200 bg-[#faf9f6] px-3 py-1.5 text-xs font-medium text-zinc-600"
+                                            >
+                                                {{ leadMetaById[lead.id].statusContext }}
+                                            </span>
+                                            <span
+                                                v-if="lead.needsReply"
+                                                class="rounded-full border border-zinc-950 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-white"
+                                            >
+                                                {{ leadMetaById[lead.id].reminderAt }}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div
@@ -1028,7 +1433,7 @@ const priorityClasses: Record<LeadPriority, string> = {
                                                 {{ lead.nextStep }}
                                             </div>
                                             <div class="mt-1">
-                                                Next best action
+                                                Due {{ leadMetaById[lead.id].nextActionDue }}
                                             </div>
                                         </div>
                                     </div>
@@ -1130,6 +1535,38 @@ const priorityClasses: Record<LeadPriority, string> = {
 
                                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                                     <div
+                                        class="rounded-[22px] border border-zinc-200 bg-white p-4"
+                                    >
+                                        <div class="text-sm text-zinc-500">
+                                            Status context
+                                        </div>
+                                        <div
+                                            class="mt-2 text-sm leading-7 text-zinc-700"
+                                        >
+                                            {{ selectedLeadMeta?.statusContext }}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rounded-[22px] border border-zinc-200 bg-white p-4"
+                                    >
+                                        <div class="text-sm text-zinc-500">
+                                            Reminder
+                                        </div>
+                                        <div
+                                            class="mt-2 text-sm font-medium text-zinc-950"
+                                        >
+                                            {{ selectedLeadMeta?.reminderAt }}
+                                        </div>
+                                        <div class="mt-1 text-xs text-zinc-500">
+                                            Next action due
+                                            {{ selectedLeadMeta?.nextActionDue }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                                    <div
                                         class="rounded-[22px] border border-zinc-200 p-4"
                                     >
                                         <div
@@ -1213,6 +1650,38 @@ const priorityClasses: Record<LeadPriority, string> = {
                                             {{ selectedLead.city }}
                                         </div>
                                     </div>
+
+                                    <div
+                                        class="rounded-[22px] border border-zinc-200 p-4"
+                                    >
+                                        <div class="text-sm text-zinc-500">
+                                            Owner
+                                        </div>
+                                        <div
+                                            class="mt-2 text-sm font-medium text-zinc-950"
+                                        >
+                                            {{ selectedLead.owner }}
+                                        </div>
+                                        <div class="mt-1 text-xs text-zinc-500">
+                                            {{ selectedLeadMeta?.ownershipSince }}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rounded-[22px] border border-zinc-200 p-4"
+                                    >
+                                        <div class="text-sm text-zinc-500">
+                                            Lead created
+                                        </div>
+                                        <div
+                                            class="mt-2 text-sm font-medium text-zinc-950"
+                                        >
+                                            {{ selectedLeadMeta?.createdAt }}
+                                        </div>
+                                        <div class="mt-1 text-xs text-zinc-500">
+                                            Last touch {{ selectedLead.lastTouch }}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="mt-5">
@@ -1229,6 +1698,39 @@ const priorityClasses: Record<LeadPriority, string> = {
                                         >
                                             {{ tag }}
                                         </span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5">
+                                    <div
+                                        class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
+                                    >
+                                        Lead notes
+                                    </div>
+                                    <div class="mt-3 space-y-3">
+                                        <article
+                                            v-for="note in selectedLeadNotes"
+                                            :key="`${note.author}-${note.time}`"
+                                            class="rounded-[22px] border border-zinc-200 bg-white p-4"
+                                        >
+                                            <div
+                                                class="flex items-center justify-between gap-3"
+                                            >
+                                                <div
+                                                    class="text-sm font-semibold text-zinc-950"
+                                                >
+                                                    {{ note.author }}
+                                                </div>
+                                                <div class="text-xs text-zinc-500">
+                                                    {{ note.time }}
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="mt-3 text-sm leading-7 text-zinc-600"
+                                            >
+                                                {{ note.body }}
+                                            </div>
+                                        </article>
                                     </div>
                                 </div>
                             </template>
@@ -1259,9 +1761,46 @@ const priorityClasses: Record<LeadPriority, string> = {
                                 </div>
                             </div>
 
+                            <div
+                                v-if="selectedLead && selectedLeadMeta"
+                                class="mt-5 rounded-[26px] border border-zinc-200 bg-[#faf9f6] p-5"
+                            >
+                                <div
+                                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+                                >
+                                    <div>
+                                        <div
+                                            class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
+                                        >
+                                            Primary next step
+                                        </div>
+                                        <div
+                                            class="mt-3 text-xl font-semibold tracking-tight text-zinc-950"
+                                        >
+                                            {{ selectedLead.nextStep }}
+                                        </div>
+                                        <div
+                                            class="mt-2 text-sm leading-7 text-zinc-600"
+                                        >
+                                            {{ selectedLeadMeta.statusContext }}
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="rounded-[20px] border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 sm:text-right"
+                                    >
+                                        <div class="font-medium text-zinc-950">
+                                            {{ selectedLeadMeta.nextActionDue }}
+                                        </div>
+                                        <div class="mt-1">
+                                            Owner {{ selectedLead.owner }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-5 space-y-3">
                                 <article
-                                    v-for="action in selectedLeadActions"
+                                    v-for="action in selectedLeadActionCards"
                                     :key="action.title"
                                     class="flex items-start justify-between gap-4 rounded-[24px] border border-zinc-200 p-4"
                                 >
@@ -1300,26 +1839,41 @@ const priorityClasses: Record<LeadPriority, string> = {
                             <p
                                 class="text-xs font-semibold tracking-[0.22em] text-zinc-400 uppercase"
                             >
-                                CSV-ready fields
+                                Recent activity
                             </p>
                             <h2
                                 class="mt-3 text-2xl font-semibold tracking-tight"
                             >
-                                Structure prepared for admin uploads later.
+                                Timeline for the selected lead.
                             </h2>
                             <p class="mt-3 text-sm leading-7 text-zinc-300">
-                                Once CSV import is connected, these are the core
-                                fields this UI is already ready to display.
+                                A clearer activity trail helps sales and ops
+                                understand what changed, who touched the lead,
+                                and what should happen next.
                             </p>
 
-                            <div class="mt-5 flex flex-wrap gap-2">
-                                <span
-                                    v-for="field in csvFields"
-                                    :key="field"
-                                    class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-zinc-100"
+                            <div class="mt-5 space-y-3">
+                                <article
+                                    v-for="item in selectedLeadActivity"
+                                    :key="`${item.title}-${item.time}`"
+                                    class="rounded-[22px] border border-white/10 bg-white/5 p-4"
                                 >
-                                    {{ field }}
-                                </span>
+                                    <div
+                                        class="flex items-start justify-between gap-3"
+                                    >
+                                        <div class="text-sm font-semibold text-white">
+                                            {{ item.title }}
+                                        </div>
+                                        <div class="text-xs text-zinc-400">
+                                            {{ item.time }}
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-3 text-sm leading-7 text-zinc-300"
+                                    >
+                                        {{ item.detail }}
+                                    </div>
+                                </article>
                             </div>
                         </section>
                     </div>

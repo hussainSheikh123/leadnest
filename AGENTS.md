@@ -1,36 +1,58 @@
 # AGENTS.md
 
 ## Project
-LeadNest lead-generation SaaS frontend.
+LeadNest is a lead-generation SaaS frontend.
 
-## Current pages
-- landing page
-- login
-- register
-- reset password
-- dashboard
-- settings/account page
+## Main visual target
+Redesign the site to feel as attractive and premium as a modern high-end SaaS landing page.
 
-## Design direction
-- Make the UI look exceptionally polished, premium, and professional.
-- Make it less AI-looking and less template-like.
-- Reduce decorative AI-style icons and avoid gimmicky futuristic visuals.
-- Prefer strong typography, spacing, hierarchy, cleaner cards, and realistic SaaS UX.
-- Use practical content, labels, timestamps, badges, ownership, and workflow cues instead of decorative icon clutter.
+## Reference direction
+Use a visually rich premium direction:
+- stronger hero composition
+- soft warm gradient glow
+- layered product mockups
+- floating UI cards
+- subtle 3D-feeling motion
+- elegant shadows
+- richer contrast
+- more beautiful spacing
+- refined typography
+- polished CTA interactions
 
-## UX goals
-- Landing page should feel more trustworthy and conversion-focused.
-- Auth pages should feel complete, balanced, and less empty.
-- Dashboard should feel like a real lead-ops workspace.
-- Settings should feel mature, structured, and product-ready.
+## Important
+The current design feels too flat, too pale, and slightly unbalanced.
+Make it more emotional, attractive, premium, and visually satisfying.
 
-## Feature goals
-- Add lightweight but useful frontend features.
-- Good candidates: saved filters, follow-up reminders, recent activity, lead notes, next actions, trust strip, FAQ, product preview, better empty states, stronger settings sections.
+## Hero requirements
+- Make the hero the strongest part of the page.
+- Balance the left text and right visual better.
+- Improve heading typography, size, line breaks, and width.
+- Add a richer product mockup composition.
+- Use layered cards, glow, soft gradients, and subtle depth.
+- Add small premium motion and polished button hover effects.
+
+## Motion
+- Add subtle 3D-feeling motion, not childish animation.
+- Use reveal animations, hover lift, soft parallax, floating layers, and smooth transitions.
+- Keep the site elegant and premium.
+
+## Visual style
+- High-end SaaS
+- warm premium lighting
+- cinematic depth
+- refined gradients
+- layered UI
+- modern typography
+- more attractive than the current version
+
+## Typography
+- Improve the font system.
+- Prefer a premium modern SaaS font like Manrope, Plus Jakarta Sans, Sora, or Outfit if suitable.
+- Improve hierarchy and rhythm.
 
 ## Rules
-- Keep responsiveness intact.
+- Preserve responsiveness.
+- Keep implementation production-ready.
 - Reuse existing components where possible.
-- Do not add unnecessary heavy dependencies.
-- Keep code clean and production-ready.
-- After each task, summarize changed files and what improved.
+- Avoid unnecessary heavy dependencies.
+- After each task, summarize changed files and the exact visual improvements.
