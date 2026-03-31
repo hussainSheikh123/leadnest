@@ -2,18 +2,23 @@
 import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowRight,
-    Check,
-    Layers3,
+    BarChart3,
+    BriefcaseBusiness,
+    Building2,
+    GraduationCap,
+    Landmark,
+    LayoutDashboard,
+    PhoneCall,
+    Scale,
+    Search,
     ShieldCheck,
-    Sparkles,
-    Workflow,
+    Stethoscope,
+    Truck,
+    Zap,
 } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { contact, dashboard, home, login, register } from '@/routes';
-import leadnestHeroTexture from './leadnest-hero-texture.png';
-import leadnestTrustVisual from './leadnest-trust-visual.png';
-import leadnestWorkspacePreview from './leadnest-workspace-preview.png';
 
 withDefaults(
     defineProps<{
@@ -24,293 +29,226 @@ withDefaults(
     },
 );
 
-const navItems = [
-    { label: 'Platform', href: '#platform' },
-    { label: 'Workflow', href: '#workflow' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'FAQ', href: '#faq' },
-    { label: 'Contact', href: contact.url() },
-];
+const mobileMenuOpen = ref(false);
+const isScrolled = ref(false);
+let revealObserver: IntersectionObserver | null = null;
 
-const trustLogos = ['HubSpot', 'Stripe', 'Zapier', 'Ramp', 'Airtable'];
-const heroReferenceBackdrop =
-    '/a_web_design_mockup_of_leadnest_a_lead_management.png.png';
+const navItems = [
+    { label: 'How It Works', href: '#hiw' },
+    { label: 'Features', href: '#features' },
+    { label: 'Industries', href: '#industries' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Testimonials', href: '#testimonials' },
+];
 
 const heroStats = [
-    { value: '<24 hrs', label: 'Lead response time' },
-    { value: '31x', label: 'ROI from qualified leads' },
-    { value: '99.8%', label: 'Customer satisfaction' },
+    { value: '12', suffix: 'K+', label: 'Verified Leads' },
+    { value: '98', suffix: '%', label: 'Accuracy Rate' },
+    { value: '500', suffix: '+', label: 'Active Buyers' },
 ];
 
-const proofMetrics = [
-    { label: 'New today', value: '18' },
-    { label: 'Due now', value: '5' },
-    { label: 'High intent', value: '7' },
+const howItWorks = [
+    {
+        step: 'STEP - 01',
+        title: 'Submit a Lead',
+        description:
+            'Businesses submit prospective buyer information through our secure portal. Every submission is checked for completeness and quality before it enters the pipeline.',
+        bg: '01',
+        icon: LayoutDashboard,
+    },
+    {
+        step: 'STEP - 02',
+        title: 'Get Matched',
+        description:
+            'Our matching engine cross-references lead profiles against buyer criteria, budget, geography, and intent signals to deliver higher-relevance opportunities.',
+        bg: '02',
+        icon: Search,
+    },
+    {
+        step: 'STEP - 03',
+        title: 'Buyer Notified',
+        description:
+            'Matched buyers receive detailed lead cards with contact info and intent data so they can respond while prospect interest is still high.',
+        bg: '03',
+        icon: PhoneCall,
+    },
 ];
 
-const narrativeCards = [
+const features = [
     {
-        icon: Layers3,
-        eyebrow: 'Layered workspace',
-        title: 'The product should look as resolved as the system behind it.',
+        title: 'Verified Lead Quality',
         description:
-            'LeadNest now frames ownership, urgency, and buyer context with clearer depth, stronger composition, and a much more premium operating surface.',
-    },
-    {
-        icon: Workflow,
-        eyebrow: 'Operational clarity',
-        title: 'Teams see what moves next without hunting across disconnected tools.',
-        description:
-            'Views, handoff states, notes, and manager signals live inside one cinematic interface that still feels practical and production-ready.',
-    },
-    {
+            'Every lead is checked against structured quality signals before delivery, reducing noise and improving buyer confidence.',
         icon: ShieldCheck,
-        eyebrow: 'Trust and control',
-        title: 'The page sells credibility through product texture instead of generic blocks.',
+    },
+    {
+        title: 'Real-Time Delivery',
         description:
-            'Better mockups, calmer spacing, and stronger contrast make the platform feel dependable before the demo even starts.',
+            'Leads are delivered when they match, not hours later. That keeps your team closer to live buyer intent.',
+        icon: Zap,
+    },
+    {
+        title: 'Smart Matching Engine',
+        description:
+            'LeadNest learns from your buyer criteria and improves lead relevance over time.',
+        icon: Search,
+    },
+    {
+        title: 'Performance Analytics',
+        description:
+            'Track lead velocity, conversion quality, and channel performance so you can refine spend and close more efficiently.',
+        icon: BarChart3,
+        wide: true,
+    },
+    {
+        title: 'Advanced Dashboard',
+        description:
+            'A clean, data-rich workspace gives your team full visibility into lead status, spend efficiency, and pipeline health.',
+        icon: LayoutDashboard,
     },
 ];
 
-const featureCards = [
+const industries = [
     {
-        title: 'One workspace for qualification, routing, and follow-up',
-        description:
-            'Each lead stays attached to owner, priority, next action, and recent movement so your team stops wondering who should move next.',
+        name: 'Real Estate',
+        sub: 'Property buyers & investors',
+        icon: Building2,
     },
     {
-        title: 'Designed around daily operating decisions',
-        description:
-            'Saved views, due states, and clear manager oversight turn the interface into a calmer place to review work under pressure.',
+        name: 'Financial Services',
+        sub: 'Banking, insurance & wealth',
+        icon: Landmark,
     },
     {
-        title: 'Premium by design, practical in use',
-        description:
-            'The product keeps the visual richness buyers expect while preserving the legibility operators need all day.',
-    },
-];
-
-const workflowSteps = [
-    {
-        step: '01',
-        title: 'Capture with enough context',
-        description:
-            'Inbound, outbound, or partner leads arrive with source, fit, urgency, and ownership signals visible immediately.',
+        name: 'Technology',
+        sub: 'SaaS, IT & digital solutions',
+        icon: Zap,
     },
     {
-        step: '02',
-        title: 'Qualify inside one review surface',
-        description:
-            'Reps and operators can review fit, notes, enrichment, and handoff criteria without bouncing between fragmented tools.',
+        name: 'Healthcare',
+        sub: 'Clinics, pharma & medtech',
+        icon: Stethoscope,
     },
     {
-        step: '03',
-        title: 'Route the next move clearly',
-        description:
-            'Assignments, due times, and delivery notes create an obvious next step so handoffs stay fast and accountable.',
+        name: 'Construction',
+        sub: 'Contractors & materials',
+        icon: BriefcaseBusiness,
     },
     {
-        step: '04',
-        title: 'Keep momentum visible',
-        description:
-            'Managers can spot stalled activity, overdue follow-ups, and high-intent opportunities before pipeline quality slips.',
+        name: 'Logistics',
+        sub: 'Freight & supply chain',
+        icon: Truck,
+    },
+    {
+        name: 'Education',
+        sub: 'Training & professional development',
+        icon: GraduationCap,
+    },
+    {
+        name: 'Legal Services',
+        sub: 'Law firms & consultancies',
+        icon: Scale,
     },
 ];
 
-const testimonials = [
-    {
-        quote: 'LeadNest made our lead review feel finished. The team trusts the workflow faster because the product looks and behaves like a premium operating system instead of a patchwork dashboard.',
-        name: 'Mariam Yusuf',
-        role: 'Revenue Operations Lead',
-        company: 'BrightWorks',
-    },
-    {
-        quote: 'The new presentation gives buyers immediate confidence. It feels warmer, sharper, and much closer to the level of software we actually sell.',
-        name: 'Ahmed Raza',
-        role: 'Commercial Director',
-        company: 'GrowthPilot',
-    },
+const numberCards = [
+    { value: '12', suffix: 'K+', label: 'Verified Leads Delivered' },
+    { value: '98', suffix: '%', label: 'Lead Accuracy Rate' },
+    { value: '500', suffix: '+', label: 'Active Buyers' },
+    { value: '40', suffix: '%+', label: 'Avg. Close Rate Improvement' },
 ];
 
 const pricingPlans = [
     {
         name: 'Starter',
-        monthlyPrice: 29,
-        annualPrice: 24,
-        description:
-            'For smaller teams that need a polished lead handoff layer.',
+        price: '499',
+        period: 'per month',
+        featured: false,
         features: [
-            'Shared lead workspace',
-            'Ownership and reminder states',
-            'Saved filters and queue views',
+            'Up to 25 verified leads/month',
+            '1 industry category',
+            'Standard delivery within 24h',
+            'Email notifications',
+            'Basic dashboard access',
+            'Email support',
         ],
-        cta: 'Start with Starter',
-        highlighted: false,
+        cta: 'Get Started',
     },
     {
         name: 'Growth',
-        monthlyPrice: 79,
-        annualPrice: 64,
-        description:
-            'For active revenue teams running daily qualification and routing.',
+        price: '1,299',
+        period: 'per month',
+        featured: true,
+        badge: 'Most Popular',
         features: [
-            'Everything in Starter',
-            'Advanced routing and activity timelines',
-            'Manager views and performance visibility',
+            'Up to 100 verified leads/month',
+            '3 industry categories',
+            'Real-time lead delivery',
+            'SMS, email, and WhatsApp alerts',
+            'Full analytics dashboard',
+            'CRM integration support',
+            'Priority support',
         ],
-        cta: 'Choose Growth',
-        highlighted: true,
-        badge: 'Most popular',
-    },
-    {
-        name: 'Scale',
-        monthlyPrice: 149,
-        annualPrice: 124,
-        description:
-            'For multi-team workflows that need tighter controls and support.',
-        features: [
-            'Everything in Growth',
-            'Role-based access and approvals',
-            'Priority onboarding and workspace design review',
-        ],
-        cta: 'Choose Scale',
-        highlighted: false,
+        cta: 'Get Started',
     },
     {
         name: 'Enterprise',
-        monthlyPrice: null,
-        annualPrice: null,
-        description:
-            'For larger organizations standardizing lead operations across regions.',
+        price: 'Custom',
+        period: 'tailored to your team',
+        featured: false,
         features: [
-            'Commercial planning and security review',
-            'Implementation guidance and training',
-            'Dedicated onboarding and support alignment',
+            'Unlimited verified leads',
+            'All industries and custom verticals',
+            'Dedicated account manager',
+            'API access and full CRM sync',
+            'Custom lead scoring model',
+            'White-label option available',
+            'SLA guarantee and 24/7 support',
         ],
-        cta: 'Talk to sales',
-        highlighted: false,
+        cta: 'Contact Sales',
     },
 ];
 
-const faqItems = [
+const testimonials = [
     {
-        question: 'Is LeadNest replacing the CRM?',
-        answer: 'No. LeadNest is the cleaner operating layer for qualification, routing, ownership, and follow-up clarity before or alongside your CRM.',
+        quote: 'LeadNest completely transformed our sales pipeline. The quality of every contact is unlike anything we had before.',
+        initials: 'KA',
+        name: 'Khalid Al-Mansouri',
+        company: 'CEO, Pinnacle Real Estate - Dubai',
     },
     {
-        question: 'Who is this best suited for?',
-        answer: 'It fits inbound teams, outbound teams, agencies, and revenue operations groups that need clear handoff discipline without a heavy CRM rollout.',
+        quote: 'We moved from long cold outreach cycles to faster deal movement. The matching flow feels like an elite BD team working in the background.',
+        initials: 'SR',
+        name: 'Sara Rahman',
+        company: 'Head of Growth, NovaTech - Abu Dhabi',
     },
     {
-        question: 'How much implementation work is involved?',
-        answer: 'Most teams can define views, routing logic, and ownership rules quickly because the platform is intentionally focused on the core operating workflow.',
-    },
-    {
-        question: 'Can larger teams get custom pricing?',
-        answer: 'Yes. Enterprise plans cover commercial coordination, support expectations, onboarding scope, and any security review requirements.',
+        quote: 'The ROI showed up early. LeadNest does not just send contacts, it sends qualified opportunities our team can actually work.',
+        initials: 'FJ',
+        name: 'Faisal Jaber',
+        company: 'Director, Gulf Logistics - Sharjah',
     },
 ];
 
-const demoOptions = [
-    '30-minute product walkthrough',
-    'Review of your current qualification flow',
-    'Routing and ownership model discussion',
-    'Implementation and pricing recommendation',
-];
-
-const billingCycle = ref<'monthly' | 'annual'>('annual');
-const heroVisualTilt = ref({ x: 0, y: 0 });
-let revealObserver: IntersectionObserver | null = null;
-
-const revealDelay = (index = 0, step = 100) =>
-    ({
-        '--reveal-delay': `${index * step}ms`,
-    }) as Record<string, string>;
-
-const heroVisualStyle = computed(
-    () =>
-        ({
-            '--hero-rotate-x': `${heroVisualTilt.value.x}deg`,
-            '--hero-rotate-y': `${heroVisualTilt.value.y}deg`,
-            '--hero-shift-x': `${heroVisualTilt.value.y * 1.8}px`,
-            '--hero-shift-y': `${heroVisualTilt.value.x * -1.5}px`,
-        }) as Record<string, string>,
-);
-
-const displayedPricingPlans = computed(() =>
-    pricingPlans.map((plan) => {
-        if (plan.monthlyPrice === null || plan.annualPrice === null) {
-            return {
-                ...plan,
-                displayPrice: 'Custom',
-                billingText: 'Tailored commercial terms',
-                savingsText: 'Built for larger or more complex organizations',
-                showBadge: false,
-            };
-        }
-
-        const price =
-            billingCycle.value === 'annual'
-                ? plan.annualPrice
-                : plan.monthlyPrice;
-
-        return {
-            ...plan,
-            displayPrice: `$${price}`,
-            billingText:
-                billingCycle.value === 'annual'
-                    ? 'Per seat / month, billed annually'
-                    : 'Per seat / month, billed monthly',
-            savingsText:
-                billingCycle.value === 'annual'
-                    ? `Save $${plan.monthlyPrice - plan.annualPrice} per seat each month`
-                    : 'Switch to annual for lower seat cost',
-            showBadge: billingCycle.value === 'annual' && !!plan.badge,
-        };
-    }),
-);
-
-const updateHeroVisualTilt = (event: MouseEvent) => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return;
-    }
-
-    const target = event.currentTarget;
-
-    if (!(target instanceof HTMLElement)) {
-        return;
-    }
-
-    const bounds = target.getBoundingClientRect();
-    const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const vertical = (event.clientY - bounds.top) / bounds.height - 0.5;
-
-    heroVisualTilt.value = {
-        x: Number((-vertical * 7).toFixed(2)),
-        y: Number((horizontal * 9).toFixed(2)),
-    };
+const handleScroll = () => {
+    isScrolled.value = window.scrollY > 60;
 };
 
-const resetHeroVisualTilt = () => {
-    heroVisualTilt.value = { x: 0, y: 0 };
+const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const closeMobileMenu = () => {
+    mobileMenuOpen.value = false;
 };
 
 onMounted(() => {
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     const revealElements = Array.from(
-        document.querySelectorAll<HTMLElement>('[data-reveal]'),
+        document.querySelectorAll<HTMLElement>('.reveal'),
     );
-
-    if (!revealElements.length) {
-        return;
-    }
-
-    if (!('IntersectionObserver' in window)) {
-        revealElements.forEach((element) =>
-            element.classList.add('is-visible'),
-        );
-
-        return;
-    }
 
     revealObserver = new IntersectionObserver(
         (entries) => {
@@ -319,13 +257,13 @@ onMounted(() => {
                     return;
                 }
 
-                entry.target.classList.add('is-visible');
+                entry.target.classList.add('visible');
                 revealObserver?.unobserve(entry.target);
             });
         },
         {
-            threshold: 0.16,
-            rootMargin: '0px 0px -8% 0px',
+            threshold: 0.12,
+            rootMargin: '0px 0px -30px 0px',
         },
     );
 
@@ -333,2709 +271,1921 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener('scroll', handleScroll);
     revealObserver?.disconnect();
 });
 </script>
 
 <template>
     <PublicLayout>
-        <Head title="LeadNest" />
+        <Head title="LeadNest">
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link
+                rel="preconnect"
+                href="https://fonts.gstatic.com"
+                crossorigin="anonymous"
+            />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+                rel="stylesheet"
+            />
+        </Head>
 
-        <div
-            class="landing-page relative overflow-hidden bg-[#edd9ca] text-[#24140b]"
-        >
-            <div
-                class="absolute inset-x-0 top-0 -z-[60] h-[78rem] overflow-hidden"
-            >
-                <img
-                    :src="heroReferenceBackdrop"
-                    alt="LeadNest hero reference backdrop"
-                    class="h-full w-full scale-[1.08] object-cover object-top opacity-[0.34] blur-[2px]"
-                />
-                <div
-                    class="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,236,226,0.24)_0%,rgba(237,217,202,0.34)_24%,rgba(121,72,38,0.22)_56%,rgba(237,217,202,0.96)_100%)]"
-                />
-            </div>
-            <div class="landing-mesh absolute inset-0 -z-50" />
-            <div class="landing-grid absolute inset-0 -z-40 opacity-30" />
-            <div
-                class="absolute top-[-10rem] left-1/2 -z-30 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(255,229,201,0.78)_0%,_rgba(255,229,201,0)_70%)] blur-[110px]"
-            />
-            <div
-                class="absolute top-[10rem] right-[-4rem] -z-30 h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(circle,_rgba(255,191,132,0.26)_0%,_rgba(255,191,132,0)_72%)] blur-[110px]"
-            />
-            <div
-                class="absolute bottom-[24rem] left-[-8rem] -z-30 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(255,240,224,0.34)_0%,_rgba(255,240,224,0)_72%)] blur-[92px]"
-            />
-
-            <header
-                class="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8"
-            >
-                <div
-                    class="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-[rgba(92,56,33,0.14)] bg-[rgba(46,28,19,0.9)] px-4 py-3 shadow-[0_26px_70px_rgba(54,30,14,0.18)] sm:px-6"
+        <div class="leadnest-white">
+            <div class="mob-menu" :class="{ open: mobileMenuOpen }">
+                <button
+                    class="mob-close"
+                    type="button"
+                    @click="closeMobileMenu"
                 >
-                    <Link :href="home()" class="flex items-center gap-3">
-                        <div
-                            class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(180deg,_rgba(255,239,220,0.18)_0%,_rgba(255,184,118,0.12)_100%)] text-sm font-semibold text-[#fff5ea] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
-                        >
-                            LN
-                        </div>
-                        <div>
-                            <div
-                                class="text-base font-semibold tracking-tight text-white"
-                            >
-                                LeadNest
-                            </div>
-                            <div
-                                class="text-[10px] tracking-[0.28em] text-[#e2c7aa] uppercase"
-                            >
-                                Lead management system
-                            </div>
-                        </div>
+                    ×
+                </button>
+                <a
+                    v-for="item in navItems"
+                    :key="`mobile-${item.label}`"
+                    :href="item.href"
+                    @click="closeMobileMenu"
+                >
+                    {{ item.label }}
+                </a>
+                <Link
+                    v-if="!$page.props.auth.user"
+                    :href="login()"
+                    @click="closeMobileMenu"
+                >
+                    Login
+                </Link>
+                <Link
+                    v-if="!$page.props.auth.user && canRegister"
+                    :href="register()"
+                    @click="closeMobileMenu"
+                >
+                    Register
+                </Link>
+                <Link :href="contact()" @click="closeMobileMenu">Contact</Link>
+            </div>
+
+            <header class="site-nav" :class="{ scrolled: isScrolled }">
+                <Link :href="home()" class="logo">
+                    <div class="logo-mark">LN</div>
+                    <span class="logo-text">Lead<span>Nest</span></span>
+                </Link>
+
+                <nav class="nav-links">
+                    <a
+                        v-for="item in navItems"
+                        :key="item.label"
+                        :href="item.href"
+                    >
+                        {{ item.label }}
+                    </a>
+                    <Link v-if="!$page.props.auth.user" :href="login()">
+                        Login
                     </Link>
+                    <Link
+                        v-if="!$page.props.auth.user && canRegister"
+                        :href="register()"
+                        class="nav-cta"
+                    >
+                        Register
+                    </Link>
+                    <Link
+                        v-if="$page.props.auth.user"
+                        :href="dashboard()"
+                        class="nav-cta"
+                    >
+                        Dashboard
+                    </Link>
+                </nav>
 
-                    <nav class="hidden items-center gap-8 lg:flex">
-                        <a
-                            v-for="item in navItems"
-                            :key="item.label"
-                            :href="item.href"
-                            class="text-sm font-medium text-[#ebdac8] transition hover:text-white"
-                        >
-                            {{ item.label }}
-                        </a>
-                    </nav>
-
-                    <div class="flex items-center gap-3">
-                        <Link
-                            v-if="$page.props.auth.user"
-                            :href="dashboard()"
-                            class="landing-cta landing-cta-secondary hidden min-h-10 items-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-[#f8ede0] sm:inline-flex"
-                        >
-                            Dashboard
-                        </Link>
-                        <template v-else>
-                            <Link
-                                :href="login()"
-                                class="landing-cta landing-cta-secondary hidden min-h-10 items-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-[#f8ede0] sm:inline-flex"
-                            >
-                                Sign in
-                            </Link>
-                            <Link
-                                v-if="canRegister"
-                                :href="register()"
-                                class="landing-cta landing-cta-primary inline-flex min-h-10 items-center rounded-full border border-[#ffdda8]/30 bg-[linear-gradient(135deg,_#f6d3a2_0%,_#f0b36a_52%,_#b97433_100%)] px-4 py-2 text-sm font-semibold text-[#231108] shadow-[0_20px_50px_rgba(240,179,106,0.32)]"
-                            >
-                                Start free
-                            </Link>
-                        </template>
-                    </div>
-                </div>
+                <button
+                    class="hamburger"
+                    type="button"
+                    @click="toggleMobileMenu"
+                >
+                    <span />
+                    <span />
+                    <span />
+                </button>
             </header>
 
-            <main class="relative pt-[108px] sm:pt-[118px]">
-                <section
-                    class="relative px-4 pt-6 pb-18 sm:px-6 lg:px-8 lg:pt-10 lg:pb-28"
-                >
-                    <div
-                        class="hero-atmosphere pointer-events-none absolute inset-x-0 top-[-6rem] h-[52rem] overflow-hidden"
-                    />
-                    <div class="mx-auto max-w-7xl">
-                        <div
-                            class="grid gap-14 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-16"
+            <section id="hero">
+                <div class="hero-left">
+                    <div class="hero-eyebrow">
+                        UAE's Premier B2B Lead Platform
+                    </div>
+                    <h1>
+                        Connect. Convert.<br />
+                        <em>Dominate</em><br />
+                        Your Market.
+                    </h1>
+                    <p class="hero-sub">
+                        LeadNest delivers verified, intent-driven B2B leads
+                        directly to buyers across the UAE. Stop chasing cold
+                        prospects and start closing qualified opportunities.
+                    </p>
+                    <div class="hero-actions">
+                        <Link :href="contact()" class="btn-primary">
+                            Start Generating Leads
+                            <ArrowRight class="h-4 w-4" />
+                        </Link>
+                        <a href="#hiw" class="btn-ghost">See How It Works</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div v-for="item in heroStats" :key="item.label">
+                            <div class="s-num">
+                                {{ item.value }}<span>{{ item.suffix }}</span>
+                            </div>
+                            <div class="s-lbl">{{ item.label }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-right">
+                    <div class="hero-visual">
+                        <div class="hv-card c3" />
+                        <div class="hv-card c2" />
+                        <div class="hv-card c1">
+                            <div class="hv-tag">New Lead</div>
+                            <div class="hv-name">Al-Futtaim Properties</div>
+                            <div class="hv-company">
+                                Real Estate · Dubai, UAE
+                            </div>
+                            <div class="hv-row">
+                                <span class="hv-row-lbl">Budget</span>
+                                <span class="hv-row-val gold">AED 4.5M</span>
+                            </div>
+                            <div class="hv-row">
+                                <span class="hv-row-lbl">Interest</span>
+                                <span class="hv-row-val">Commercial Units</span>
+                            </div>
+                            <div class="hv-row">
+                                <span class="hv-row-lbl">Timeline</span>
+                                <span class="hv-row-val">Q1 2025</span>
+                            </div>
+                            <div class="hv-row">
+                                <span class="hv-row-lbl">Status</span>
+                                <span class="hv-badge green">Live Match</span>
+                            </div>
+                            <div class="hv-row">
+                                <span class="hv-row-lbl">Score</span>
+                                <span class="hv-badge amber">9.4 / 10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="marquee-wrap" aria-hidden="true">
+                <div class="marquee-track">
+                    <span
+                        v-for="(item, index) in [...industries, ...industries]"
+                        :key="`${item.name}-${index}`"
+                        class="mi"
+                    >
+                        {{ item.name }}
+                    </span>
+                </div>
+            </div>
+
+            <section id="hiw">
+                <div class="si">
+                    <div class="hiw-header">
+                        <div>
+                            <div class="slabel reveal">How It Works</div>
+                            <h2 class="reveal">
+                                Three steps to a <em>qualified</em><br />
+                                sales pipeline
+                            </h2>
+                        </div>
+                        <p class="sdesc reveal">
+                            Our process keeps every delivered lead verified,
+                            relevant, and closer to conversion.
+                        </p>
+                    </div>
+
+                    <div class="hiw-grid">
+                        <article
+                            v-for="(item, index) in howItWorks"
+                            :key="item.title"
+                            class="step-card reveal"
+                            :style="{ transitionDelay: `${index * 0.08}s` }"
                         >
-                            <div
-                                class="hero-copy-column relative z-10 max-w-[37rem]"
-                            >
-                                <div
-                                    class="hero-copy-glow pointer-events-none absolute top-[-2.5rem] -left-10 h-[22rem] w-[22rem]"
-                                />
-                                <div
-                                    class="inline-flex items-center gap-2 rounded-full border border-[rgba(92,56,33,0.14)] bg-[rgba(255,250,244,0.62)] px-4 py-2 text-[11px] font-semibold tracking-[0.22em] text-[#8a603d] uppercase shadow-[0_18px_40px_rgba(91,58,35,0.08)] backdrop-blur"
-                                >
-                                    <Sparkles class="h-3.5 w-3.5" />
-                                    Switch a workspace view in real time
-                                </div>
-
-                                <h1
-                                    class="mt-6 max-w-[9.6ch] text-[3.42rem] font-semibold tracking-[-0.085em] text-[#2b160d] sm:text-[4.45rem] lg:text-[6rem] lg:leading-[0.84]"
-                                >
-                                    <span class="block">Lead operations,</span>
-                                    <span class="block"
-                                        ><span class="hero-title-accent"
-                                            >refined</span
-                                        >
-                                        for</span
-                                    >
-                                    <span class="block">teams that</span>
-                                    <span class="block">move fast.</span>
-                                </h1>
-
-                                <p
-                                    class="mt-6 max-w-[31rem] text-base leading-[2rem] text-[#71523a] sm:text-[1.08rem] sm:leading-[2.05rem]"
-                                >
-                                    Capture better leads and route them faster
-                                    through a warmer, sharper operating surface
-                                    built for qualification, handoff, and
-                                    follow-up momentum.
-                                </p>
-
-                                <div
-                                    class="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center"
-                                >
-                                    <Link
-                                        v-if="
-                                            !$page.props.auth.user &&
-                                            canRegister
-                                        "
-                                        :href="register()"
-                                        class="landing-cta landing-cta-primary inline-flex min-h-[3.5rem] items-center justify-center gap-2 rounded-full border border-[#ffdda8]/30 bg-[linear-gradient(135deg,_#f6d3a2_0%,_#f0b36a_52%,_#b97433_100%)] px-6 py-3 text-sm font-semibold text-[#231108] shadow-[0_24px_70px_rgba(240,179,106,0.32)]"
-                                    >
-                                        <span>Start free trial</span>
-                                    </Link>
-                                    <Link
-                                        :href="contact()"
-                                        class="landing-cta landing-cta-secondary inline-flex min-h-[3.5rem] items-center justify-center gap-2 rounded-full border border-[rgba(92,56,33,0.14)] bg-[rgba(255,250,244,0.72)] px-6 py-3 text-sm font-semibold text-[#2b160d] shadow-[0_18px_50px_rgba(91,58,35,0.12)]"
-                                    >
-                                        <span>Book a demo</span>
-                                        <ArrowRight
-                                            class="landing-cta-arrow h-4 w-4"
-                                        />
-                                    </Link>
-                                </div>
-
-                                <div
-                                    class="hero-micro-strip mt-8 flex flex-wrap gap-3 text-xs font-medium text-[#8a6547]"
-                                >
-                                    <span
-                                        class="rounded-full border border-[rgba(92,56,33,0.12)] bg-[rgba(255,250,244,0.55)] px-3 py-2"
-                                    >
-                                        Warm premium product direction
-                                    </span>
-                                    <span
-                                        class="rounded-full border border-[rgba(92,56,33,0.12)] bg-[rgba(255,250,244,0.55)] px-3 py-2"
-                                    >
-                                        Layered UI cards and cinematic depth
-                                    </span>
-                                    <span
-                                        class="rounded-full border border-[rgba(92,56,33,0.12)] bg-[rgba(255,250,244,0.55)] px-3 py-2"
-                                    >
-                                        Built for responsive production use
-                                    </span>
-                                </div>
-
-                                <div class="mt-9 grid gap-3 sm:grid-cols-3">
-                                    <div
-                                        v-for="stat in heroStats"
-                                        :key="stat.label"
-                                        class="hero-stat-card rounded-[1.7rem] border border-[rgba(92,56,33,0.12)] px-4 py-4"
-                                    >
-                                        <div
-                                            class="text-[1.9rem] font-semibold tracking-[-0.06em] text-[#24140b]"
-                                        >
-                                            {{ stat.value }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-xs leading-5 text-[#7a5b42]"
-                                        >
-                                            {{ stat.label }}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="step-n">{{ item.step }}</div>
+                            <div class="step-icon-wrap">
+                                <component :is="item.icon" />
                             </div>
+                            <div class="step-title">{{ item.title }}</div>
+                            <p class="step-desc">{{ item.description }}</p>
+                            <div class="step-num-bg">{{ item.bg }}</div>
+                        </article>
+                    </div>
+                </div>
+            </section>
 
-                            <div
-                                class="hero-stage relative lg:-mr-10"
-                                :style="heroVisualStyle"
-                                @mousemove="updateHeroVisualTilt"
-                                @mouseleave="resetHeroVisualTilt"
-                            >
-                                <div
-                                    class="hero-stage-core-glow pointer-events-none absolute inset-x-[14%] top-[14%] h-[56%]"
-                                />
-                                <div
-                                    class="hero-stage-halo pointer-events-none absolute inset-x-[4%] top-[6%] h-[78%]"
-                                />
-                                <div
-                                    class="hero-stage-ribbon hero-stage-ribbon-left absolute top-[8%] left-[-5%] h-48 w-72"
-                                />
-                                <div
-                                    class="hero-stage-ribbon hero-stage-ribbon-right absolute top-[18%] right-[2%] h-40 w-64"
-                                />
-                                <div
-                                    class="hero-light hero-light-left absolute -top-10 -left-10"
-                                />
-                                <div
-                                    class="hero-light hero-light-right absolute top-6 right-0"
-                                />
-                                <div
-                                    class="hero-light hero-light-bottom absolute bottom-2 left-20"
-                                />
-                                <div
-                                    class="pointer-events-none absolute inset-x-[10%] bottom-2 h-28 rounded-full bg-[radial-gradient(circle,_rgba(255,221,174,0.36)_0%,_rgba(255,221,174,0)_72%)] blur-[42px]"
-                                />
-                                <div
-                                    class="hero-stage-vignette pointer-events-none absolute inset-[4%] rounded-[2.8rem]"
-                                />
-                                <div
-                                    class="hero-backplate hero-backplate-main absolute top-[7%] right-[8%] hidden h-[72%] w-[68%] rounded-[2.4rem] lg:block"
-                                />
-                                <div
-                                    class="hero-backplate hero-backplate-secondary absolute top-[18%] left-[8%] hidden h-[54%] w-[44%] rounded-[2rem] lg:block"
-                                >
-                                    <img
-                                        :src="leadnestTrustVisual"
-                                        alt="LeadNest supporting hero mockup"
-                                        class="h-full w-full rounded-[inherit] object-cover opacity-88"
-                                    />
-                                </div>
-
-                                <div
-                                    class="hero-device relative overflow-hidden rounded-[2.4rem] p-3 sm:p-4"
-                                >
-                                    <img
-                                        :src="leadnestHeroTexture"
-                                        alt="LeadNest atmospheric texture"
-                                        class="pointer-events-none absolute inset-0 h-full w-full scale-[1.1] object-cover opacity-45 mix-blend-screen"
-                                    />
-                                    <div
-                                        class="hero-device-shell relative rounded-[2rem] p-4 sm:p-5"
-                                    >
-                                        <div
-                                            class="flex flex-wrap items-center justify-between gap-3"
-                                        >
-                                            <div
-                                                class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/7 px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#f3d3ac] uppercase"
-                                            >
-                                                LeadNest workspace
-                                            </div>
-                                            <div
-                                                class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/16 px-3 py-2 text-[11px] font-semibold tracking-[0.18em] text-[#e9c18d] uppercase"
-                                            >
-                                                Warm layered product view
-                                            </div>
-                                        </div>
-
-                                        <div
-                                            class="mt-5 overflow-hidden rounded-[1.8rem] border border-white/10"
-                                        >
-                                            <div
-                                                class="flex items-center justify-between border-b border-white/10 bg-white/6 px-4 py-3"
-                                            >
-                                                <div
-                                                    class="flex items-center gap-2"
-                                                >
-                                                    <span
-                                                        class="h-2.5 w-2.5 rounded-full bg-[#f0b36a]"
-                                                    />
-                                                    <span
-                                                        class="h-2.5 w-2.5 rounded-full bg-white/30"
-                                                    />
-                                                    <span
-                                                        class="h-2.5 w-2.5 rounded-full bg-white/20"
-                                                    />
-                                                </div>
-                                                <div
-                                                    class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-medium text-[#ddd0c0]"
-                                                >
-                                                    Updated 8 minutes ago
-                                                </div>
-                                            </div>
-
-                                            <div class="relative bg-[#f4ebe0]">
-                                                <img
-                                                    :src="
-                                                        leadnestWorkspacePreview
-                                                    "
-                                                    alt="LeadNest workspace preview"
-                                                    class="h-full w-full object-cover"
-                                                />
-                                                <div
-                                                    class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(24,12,8,0.18)_100%)]"
-                                                />
-                                                <div
-                                                    class="absolute top-4 left-4 rounded-full border border-white/70 bg-white/86 px-3 py-1.5 text-[11px] font-semibold tracking-[0.18em] text-[#72553a] uppercase shadow-[0_14px_30px_rgba(50,28,10,0.12)]"
-                                                >
-                                                    Review-ready lead board
-                                                </div>
-                                                <div
-                                                    class="absolute right-4 bottom-4 grid gap-3 sm:grid-cols-3"
-                                                >
-                                                    <div
-                                                        v-for="metric in proofMetrics"
-                                                        :key="metric.label"
-                                                        class="rounded-[1.2rem] border border-white/16 bg-[#140d0a]/78 px-3 py-3 text-left shadow-[0_20px_44px_rgba(0,0,0,0.22)] backdrop-blur"
-                                                    >
-                                                        <div
-                                                            class="text-[10px] font-semibold tracking-[0.18em] text-[#cdb49a] uppercase"
-                                                        >
-                                                            {{ metric.label }}
-                                                        </div>
-                                                        <div
-                                                            class="mt-2 text-xl font-semibold tracking-[-0.05em] text-white"
-                                                        >
-                                                            {{ metric.value }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div
-                                            class="mt-5 grid gap-3 sm:grid-cols-[1.08fr_0.92fr]"
-                                        >
-                                            <div
-                                                class="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 text-sm leading-7 text-[#d8c3ae]"
-                                            >
-                                                Ownership, qualification, and
-                                                urgency stay visible in one
-                                                polished surface so the handoff
-                                                feels clear before pipeline
-                                                quality starts slipping.
-                                            </div>
-                                            <div
-                                                class="rounded-[1.5rem] border border-white/10 bg-black/18 px-4 py-4"
-                                            >
-                                                <div
-                                                    class="text-[11px] font-semibold tracking-[0.18em] text-[#cdb49a] uppercase"
-                                                >
-                                                    Routed with context
-                                                </div>
-                                                <div
-                                                    class="mt-3 text-lg font-semibold text-white"
-                                                >
-                                                    92% buyer-fit score
-                                                </div>
-                                                <div
-                                                    class="mt-2 text-sm leading-6 text-[#d8c3ae]"
-                                                >
-                                                    High-intent lead matched to
-                                                    founder-led SaaS sequence
-                                                    with next response due in 20
-                                                    minutes.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="floating-card floating-card-left absolute top-[16%] -left-3 rounded-[1.5rem] border border-white/30 bg-[rgba(255,248,240,0.96)] px-4 py-4 text-[#2a160c] shadow-[0_30px_80px_rgba(54,30,14,0.16)]"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                        >
-                                            Response time
-                                        </div>
-                                        <div
-                                            class="mt-2 text-3xl font-semibold tracking-[-0.07em]"
-                                        >
-                                            24m
-                                        </div>
-                                        <div
-                                            class="mt-1 text-xs text-[#6d5136]"
-                                        >
-                                            Average for hot inbound leads
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="floating-card floating-card-right absolute top-[8%] right-[-2%] rounded-[1.4rem] border border-white/12 bg-[rgba(36,22,16,0.88)] px-4 py-4 text-white shadow-[0_28px_80px_rgba(52,28,10,0.28)] backdrop-blur-xl"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                        >
-                                            Command sync
-                                        </div>
-                                        <div
-                                            class="mt-3 space-y-2 text-sm text-[#e5d4c1]"
-                                        >
-                                            <div
-                                                class="flex items-center justify-between gap-4"
-                                            >
-                                                <span>Priority queue</span>
-                                                <span>5</span>
-                                            </div>
-                                            <div
-                                                class="flex items-center justify-between gap-4"
-                                            >
-                                                <span>Handoff due</span>
-                                                <span>3</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="floating-card floating-card-profile absolute right-[2%] bottom-[14%] max-w-[15rem] rounded-[1.5rem] border border-white/30 bg-[rgba(255,249,243,0.96)] px-4 py-4 text-[#2a160c] shadow-[0_34px_88px_rgba(54,30,14,0.18)]"
-                                    >
-                                        <div
-                                            class="flex items-start justify-between gap-4"
-                                        >
-                                            <div>
-                                                <div
-                                                    class="text-[11px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                                >
-                                                    Best-fit owner
-                                                </div>
-                                                <div
-                                                    class="mt-2 text-base font-semibold"
-                                                >
-                                                    Maria Pricely
-                                                </div>
-                                                <div
-                                                    class="mt-1 text-xs text-[#6d5136]"
-                                                >
-                                                    SaaS expansion route
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="rounded-full border border-[#f1d2aa] bg-[#fff5e8] px-2 py-1 text-xs font-semibold text-[#7f5b37]"
-                                            >
-                                                92%
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="floating-card floating-card-center absolute bottom-[8%] left-[26%] hidden rounded-[1.4rem] border border-white/12 bg-[rgba(31,19,14,0.88)] px-4 py-4 text-white shadow-[0_28px_74px_rgba(0,0,0,0.24)] backdrop-blur-xl lg:block"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                        >
-                                            Workspace pulse
-                                        </div>
-                                        <div
-                                            class="mt-3 flex items-end gap-4 text-[#efe1d0]"
-                                        >
-                                            <div>
-                                                <div
-                                                    class="text-2xl font-semibold tracking-[-0.06em] text-white"
-                                                >
-                                                    18
-                                                </div>
-                                                <div class="mt-1 text-[11px]">
-                                                    needs action today
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="h-10 w-px bg-white/10"
-                                            />
-                                            <div>
-                                                <div
-                                                    class="text-2xl font-semibold tracking-[-0.06em] text-white"
-                                                >
-                                                    7
-                                                </div>
-                                                <div class="mt-1 text-[11px]">
-                                                    high-intent accounts
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="floating-card floating-card-note absolute top-[34%] left-[7%] hidden rounded-[1.2rem] border border-white/30 bg-[rgba(255,250,244,0.94)] px-3 py-3 text-[#2a160c] shadow-[0_22px_60px_rgba(54,30,14,0.12)] lg:block"
-                                    >
-                                        <div
-                                            class="text-[10px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                        >
-                                            Live note
-                                        </div>
-                                        <div
-                                            class="mt-2 max-w-[9rem] text-xs leading-5"
-                                        >
-                                            Founder requested same-day routing
-                                            for expansion leads.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            <section id="features">
+                <div class="si">
+                    <div class="f-header">
+                        <div>
+                            <div class="slabel reveal">Platform Features</div>
+                            <h2 class="reveal">
+                                Built for <em>serious</em><br />
+                                B2B growth
+                            </h2>
                         </div>
+                        <p class="sdesc reveal">
+                            Everything you need to capture, qualify, and convert
+                            high-value leads in the UAE market.
+                        </p>
+                    </div>
 
-                        <div
-                            data-reveal
-                            class="trust-strip trust-strip-elevated mt-12 rounded-[2rem] px-6 py-6 sm:px-8 lg:px-10"
+                    <div class="f-grid">
+                        <article
+                            v-for="(item, index) in features"
+                            :key="item.title"
+                            class="f-card reveal"
+                            :class="{ wide: item.wide }"
+                            :style="{
+                                transitionDelay: `${(index % 3) * 0.06}s`,
+                            }"
                         >
-                            <div
-                                class="grid gap-6 lg:grid-cols-[0.34fr_0.66fr] lg:items-center"
-                            >
-                                <div class="max-w-[25rem]">
-                                    <div class="trust-strip-label">
-                                        <span class="trust-strip-label-dot" />
-                                        Trusted by leading revenue teams
-                                    </div>
-                                    <p
-                                        class="mt-3 text-sm leading-7 text-[#7b5e45] sm:text-[0.96rem]"
-                                    >
-                                        SaaS operators, revenue teams, and
-                                        founder-led sales orgs use LeadNest to
-                                        keep lead routing clean, visible, and
-                                        fast.
-                                    </p>
-                                </div>
-                                <div
-                                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-                                >
-                                    <span
-                                        v-for="logo in trustLogos"
-                                        :key="logo"
-                                        class="trust-logo-chip"
-                                    >
-                                        <span class="trust-logo-wordmark">{{
-                                            logo
-                                        }}</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    class="story-section relative px-4 py-8 sm:px-6 lg:px-8 lg:py-12"
-                >
-                    <div class="mx-auto max-w-7xl">
-                        <div class="grid gap-6 lg:grid-cols-[0.68fr_1.32fr]">
-                            <div
-                                data-reveal
-                                class="story-intro-panel lift-card rounded-[2rem] p-7 sm:p-8"
-                            >
-                                <div
-                                    class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-[11px] font-semibold tracking-[0.2em] text-[#f1cb9a] uppercase"
-                                >
-                                    Product storytelling
-                                </div>
-                                <h2
-                                    class="mt-5 max-w-[11ch] text-3xl font-semibold tracking-[-0.055em] text-white sm:text-[2.95rem] lg:leading-[1]"
-                                >
-                                    A clearer visual system for qualifying,
-                                    routing, and advancing leads.
-                                </h2>
-                                <p
-                                    class="mt-5 text-base leading-8 text-[#d8c3ae]"
-                                >
-                                    The reference direction is warm, layered,
-                                    and richly lit. This redesign carries that
-                                    same mood across the whole landing page so
-                                    the product feels desirable, not just
-                                    functional.
-                                </p>
-
-                                <div class="mt-8 space-y-4">
-                                    <article
-                                        v-for="(item, index) in narrativeCards"
-                                        :key="item.title"
-                                        :style="revealDelay(index, 80)"
-                                        class="story-narrative-card rounded-[1.5rem] px-5 py-5"
-                                    >
-                                        <div class="flex items-start gap-4">
-                                            <div
-                                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(180deg,_rgba(255,230,191,0.16)_0%,_rgba(255,184,118,0.08)_100%)]"
-                                            >
-                                                <component
-                                                    :is="item.icon"
-                                                    class="h-5 w-5 text-[#f1cb9a]"
-                                                />
-                                            </div>
-                                            <div>
-                                                <div
-                                                    class="text-[11px] font-semibold tracking-[0.2em] text-[#caa783] uppercase"
-                                                >
-                                                    {{ item.eyebrow }}
-                                                </div>
-                                                <h3
-                                                    class="mt-3 text-xl font-semibold text-white"
-                                                >
-                                                    {{ item.title }}
-                                                </h3>
-                                                <p
-                                                    class="mt-3 text-sm leading-7 text-[#d8c3ae]"
-                                                >
-                                                    {{ item.description }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </article>
-                                </div>
-
-                                <div class="mt-6 grid gap-3 sm:grid-cols-3">
-                                    <div
-                                        v-for="stat in heroStats"
-                                        :key="`story-${stat.label}`"
-                                        class="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4"
-                                    >
-                                        <div
-                                            class="text-2xl font-semibold tracking-[-0.05em] text-white"
-                                        >
-                                            {{ stat.value }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-[11px] leading-5 text-[#cdb49a]"
-                                        >
-                                            {{ stat.label }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="story-right-column grid gap-6">
-                                <div
-                                    data-reveal
-                                    class="story-visual-shell lift-card overflow-hidden rounded-[2rem] p-4 sm:p-5"
-                                >
-                                    <div
-                                        class="story-visual-stage relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/20"
-                                    >
-                                        <img
-                                            :src="leadnestTrustVisual"
-                                            alt="LeadNest product trust visual"
-                                            class="story-main-visual h-full w-full object-cover"
-                                        />
-                                        <div
-                                            class="story-support-screen absolute right-[10%] bottom-[9%] hidden w-[38%] overflow-hidden rounded-[1.2rem] border border-white/12 bg-[rgba(255,248,239,0.12)] p-2 shadow-[0_28px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl lg:block"
-                                        >
-                                            <img
-                                                :src="leadnestWorkspacePreview"
-                                                alt="LeadNest supporting workspace preview"
-                                                class="h-full w-full rounded-[0.9rem] object-cover"
-                                            />
-                                        </div>
-                                        <div
-                                            class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,10,8,0)_0%,rgba(18,10,8,0.24)_100%)]"
-                                        />
-                                        <div
-                                            class="absolute top-5 left-5 rounded-full border border-white/10 bg-black/24 px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] text-white/85 uppercase backdrop-blur"
-                                        >
-                                            Layered trust surface
-                                        </div>
-                                        <div
-                                            class="absolute right-5 bottom-5 max-w-xs"
-                                        >
-                                            <div
-                                                class="rounded-[1.4rem] border border-white/12 bg-[rgba(255,248,239,0.9)] px-4 py-4 text-[#29160b] shadow-[0_20px_44px_rgba(0,0,0,0.2)]"
-                                            >
-                                                <div
-                                                    class="text-[11px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                                >
-                                                    Visual confidence
-                                                </div>
-                                                <div
-                                                    class="mt-2 text-base font-semibold"
-                                                >
-                                                    Buyers understand the
-                                                    product faster when the UI
-                                                    already feels finished.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="story-mini-card absolute top-5 right-5 hidden max-w-[12rem] rounded-[1.25rem] border border-white/12 bg-[rgba(31,19,14,0.82)] px-4 py-4 text-white shadow-[0_26px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl lg:block"
-                                        >
-                                            <div
-                                                class="text-[10px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                            >
-                                                Review flow
-                                            </div>
-                                            <div
-                                                class="mt-2 text-xl font-semibold tracking-[-0.05em]"
-                                            >
-                                                20 min
-                                            </div>
-                                            <div
-                                                class="mt-1 text-xs leading-5 text-[#e8dccf]"
-                                            >
-                                                from triage to routed owner on
-                                                high-intent leads
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="story-mini-card story-mini-card-bottom absolute bottom-5 left-5 hidden max-w-[13rem] rounded-[1.25rem] border border-white/28 bg-[rgba(255,248,240,0.94)] px-4 py-4 text-[#2a160c] shadow-[0_22px_60px_rgba(54,30,14,0.16)] lg:block"
-                                        >
-                                            <div
-                                                class="text-[10px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                            >
-                                                Buyer-ready
-                                            </div>
-                                            <div
-                                                class="mt-2 text-sm leading-6 font-semibold"
-                                            >
-                                                Stronger mockup framing makes
-                                                the product feel finished before
-                                                the demo starts.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="grid gap-6 md:grid-cols-[1.08fr_0.92fr]"
-                                >
-                                    <div
-                                        data-reveal
-                                        :style="revealDelay(1)"
-                                        class="story-soft-panel lift-card rounded-[2rem] p-6"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.2em] text-[#a37b54] uppercase"
-                                        >
-                                            Richer rhythm
-                                        </div>
-                                        <h3
-                                            class="mt-4 text-[1.9rem] font-semibold tracking-[-0.05em] text-[#24140b]"
-                                        >
-                                            Stronger composition removes the
-                                            flat empty feeling.
-                                        </h3>
-                                        <p
-                                            class="mt-4 text-sm leading-7 text-[#71553a]"
-                                        >
-                                            Denser visual storytelling, more
-                                            deliberate section transitions, and
-                                            higher-contrast cards make the page
-                                            feel premium without adding heavy
-                                            dependencies or gimmicks.
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        data-reveal
-                                        :style="revealDelay(2)"
-                                        class="story-dark-panel lift-card rounded-[2rem] p-6"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.2em] text-[#caa783] uppercase"
-                                        >
-                                            Refined motion
-                                        </div>
-                                        <h3
-                                            class="mt-4 text-[1.8rem] font-semibold text-white"
-                                        >
-                                            Hover lift, reveal, and perspective
-                                            motion stay subtle.
-                                        </h3>
-                                        <p
-                                            class="mt-4 text-sm leading-7 text-[#d8c3ae]"
-                                        >
-                                            The experience feels expensive and
-                                            calm instead of flashy, with soft
-                                            parallax on the hero and gentle
-                                            floating layers around product
-                                            surfaces.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    id="platform"
-                    class="relative px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
-                >
-                    <div class="mx-auto max-w-7xl">
-                        <div class="grid gap-6 lg:grid-cols-[0.74fr_1.26fr]">
-                            <div
-                                data-reveal
-                                class="section-shell lift-card rounded-[2rem] p-7 sm:p-8"
-                            >
-                                <div
-                                    class="text-[11px] font-semibold tracking-[0.24em] text-[#a37b54] uppercase"
-                                >
-                                    Platform
-                                </div>
-                                <h2
-                                    class="mt-5 max-w-[12ch] text-3xl font-semibold tracking-[-0.05em] text-[#24140b] sm:text-[2.85rem]"
-                                >
-                                    Every section now matches the hero with more
-                                    depth and intent.
-                                </h2>
-                                <p
-                                    class="mt-5 text-base leading-8 text-[#71553a]"
-                                >
-                                    Instead of isolated plain blocks, the
-                                    platform story is carried by layered cards,
-                                    better screenshot framing, darker contrast
-                                    moments, and a cleaner premium typographic
-                                    rhythm.
-                                </p>
-
-                                <div class="mt-8 space-y-4">
-                                    <article
-                                        v-for="(item, index) in featureCards"
-                                        :key="item.title"
-                                        :style="revealDelay(index, 90)"
-                                        class="rounded-[1.5rem] border border-[#eadccf] bg-white/70 px-5 py-5 shadow-[0_16px_40px_rgba(53,31,15,0.07)]"
-                                    >
-                                        <div class="flex items-start gap-4">
-                                            <div
-                                                class="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#24140b] text-white"
-                                            >
-                                                <Check class="h-4.5 w-4.5" />
-                                            </div>
-                                            <div>
-                                                <h3
-                                                    class="text-lg font-semibold tracking-[-0.04em] text-[#24140b]"
-                                                >
-                                                    {{ item.title }}
-                                                </h3>
-                                                <p
-                                                    class="mt-2 text-sm leading-7 text-[#71553a]"
-                                                >
-                                                    {{ item.description }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </article>
-                                </div>
-                            </div>
-
-                            <div
-                                data-reveal
-                                :style="revealDelay(1)"
-                                class="section-shell-dark lift-card overflow-hidden rounded-[2rem] p-5 sm:p-6"
-                            >
-                                <div
-                                    class="grid gap-6 lg:grid-cols-[1.12fr_0.88fr] lg:items-center"
-                                >
-                                    <div
-                                        class="relative overflow-hidden rounded-[1.7rem] border border-white/10"
-                                    >
-                                        <img
-                                            :src="leadnestWorkspacePreview"
-                                            alt="LeadNest platform workspace preview"
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,10,8,0.02)_0%,rgba(18,10,8,0.28)_100%)]"
-                                        />
-                                        <div
-                                            class="absolute top-4 left-4 rounded-full border border-white/10 bg-black/22 px-3 py-1.5 text-[11px] font-semibold tracking-[0.16em] text-white/85 uppercase backdrop-blur"
-                                        >
-                                            Workspace preview
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-4">
-                                        <div
-                                            class="rounded-[1.5rem] border border-white/10 bg-white/6 px-5 py-5"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                            >
-                                                Manager clarity
-                                            </div>
-                                            <div
-                                                class="mt-3 text-2xl font-semibold text-white"
-                                            >
-                                                Ownership is impossible to miss.
-                                            </div>
-                                            <p
-                                                class="mt-3 text-sm leading-7 text-[#d8c3ae]"
-                                            >
-                                                The product composition uses
-                                                stronger focal points, cleaner
-                                                overlays, and warmer lighting to
-                                                make the platform feel more
-                                                decisive.
-                                            </p>
-                                        </div>
-
-                                        <div
-                                            class="rounded-[1.5rem] border border-white/10 bg-black/18 px-5 py-5"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                            >
-                                                Visual checklist
-                                            </div>
-                                            <div class="mt-4 space-y-3">
-                                                <div
-                                                    v-for="item in [
-                                                        'Floating UI cards around the core mockup',
-                                                        'Warmer glows and darker depth moments',
-                                                        'Glassy surfaces paired with crisp screenshot framing',
-                                                    ]"
-                                                    :key="item"
-                                                    class="flex items-start gap-3 text-sm text-[#e4d6c6]"
-                                                >
-                                                    <span
-                                                        class="mt-2 h-1.5 w-1.5 rounded-full bg-[#f1cb9a]"
-                                                    />
-                                                    <span>{{ item }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    id="workflow"
-                    class="px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
-                >
-                    <div class="mx-auto max-w-7xl">
-                        <div
-                            data-reveal
-                            class="section-shell-dark lift-card overflow-hidden rounded-[2.2rem] p-6 sm:p-8 lg:p-10"
-                        >
-                            <div
-                                class="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start"
-                            >
-                                <div>
-                                    <div
-                                        class="text-[11px] font-semibold tracking-[0.24em] text-[#caa783] uppercase"
-                                    >
-                                        Workflow
-                                    </div>
-                                    <h2
-                                        class="mt-5 max-w-[12ch] text-3xl font-semibold tracking-[-0.05em] text-white sm:text-[3rem]"
-                                    >
-                                        LeadNest is designed to guide attention
-                                        through the real work.
-                                    </h2>
-                                    <p
-                                        class="mt-5 text-base leading-8 text-[#d8c3ae]"
-                                    >
-                                        The workflow section now feels closer to
-                                        the reference image: more cinematic
-                                        depth, a better two-column balance, and
-                                        richer cards showing how the product
-                                        actually supports daily lead operations.
-                                    </p>
-
-                                    <div class="mt-8 space-y-4">
-                                        <article
-                                            v-for="(
-                                                step, index
-                                            ) in workflowSteps"
-                                            :key="step.step"
-                                            :style="revealDelay(index, 90)"
-                                            class="rounded-[1.5rem] border border-white/10 bg-white/6 px-5 py-5"
-                                        >
-                                            <div class="flex gap-4">
-                                                <div
-                                                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(180deg,_rgba(255,230,191,0.16)_0%,_rgba(255,184,118,0.08)_100%)] text-sm font-semibold text-[#f1cb9a]"
-                                                >
-                                                    {{ step.step }}
-                                                </div>
-                                                <div>
-                                                    <h3
-                                                        class="text-lg font-semibold text-white"
-                                                    >
-                                                        {{ step.title }}
-                                                    </h3>
-                                                    <p
-                                                        class="mt-2 text-sm leading-7 text-[#d8c3ae]"
-                                                    >
-                                                        {{ step.description }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    </div>
-                                </div>
-
-                                <div class="grid gap-6">
-                                    <div
-                                        class="relative overflow-hidden rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,_rgba(255,255,255,0.07)_0%,_rgba(255,255,255,0.04)_100%)] p-4 sm:p-5"
-                                    >
-                                        <img
-                                            :src="leadnestTrustVisual"
-                                            alt="LeadNest workflow detail visual"
-                                            class="h-full w-full rounded-[1.45rem] object-cover"
-                                        />
-                                        <div
-                                            class="absolute top-8 left-8 rounded-[1.3rem] border border-white/12 bg-[rgba(255,248,239,0.92)] px-4 py-4 text-[#2a160c] shadow-[0_20px_44px_rgba(0,0,0,0.2)]"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#936944] uppercase"
-                                            >
-                                                Smart lead matching
-                                            </div>
-                                            <div
-                                                class="mt-2 text-2xl font-semibold tracking-[-0.05em]"
-                                            >
-                                                31x
-                                            </div>
-                                            <div
-                                                class="mt-1 text-xs text-[#6d5136]"
-                                            >
-                                                ROI from open leads
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="absolute right-8 bottom-8 max-w-[15rem] rounded-[1.3rem] border border-white/10 bg-[rgba(19,12,10,0.78)] px-4 py-4 text-white shadow-[0_22px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                            >
-                                                More follow-up wins
-                                            </div>
-                                            <div
-                                                class="mt-2 text-sm leading-6 text-[#e2d4c4]"
-                                            >
-                                                Stronger visual hierarchy makes
-                                                the product easier to scan and
-                                                trust in live demos.
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid gap-6 md:grid-cols-2">
-                                        <div
-                                            class="rounded-[1.6rem] border border-white/10 bg-white/6 px-5 py-5"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                            >
-                                                Queue design
-                                            </div>
-                                            <div
-                                                class="mt-3 text-xl font-semibold text-white"
-                                            >
-                                                Clear over decorative
-                                            </div>
-                                            <p
-                                                class="mt-3 text-sm leading-7 text-[#d8c3ae]"
-                                            >
-                                                The redesign preserves real
-                                                table and queue usability
-                                                instead of turning the product
-                                                into abstract concept art.
-                                            </p>
-                                        </div>
-                                        <div
-                                            class="rounded-[1.6rem] border border-white/10 bg-black/18 px-5 py-5"
-                                        >
-                                            <div
-                                                class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                            >
-                                                Motion system
-                                            </div>
-                                            <div
-                                                class="mt-3 text-xl font-semibold text-white"
-                                            >
-                                                Premium, not childish
-                                            </div>
-                                            <p
-                                                class="mt-3 text-sm leading-7 text-[#d8c3ae]"
-                                            >
-                                                Floating cards, soft hover lift,
-                                                and reveal motion add depth
-                                                without relying on heavy
-                                                animation libraries.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-                    <div class="mx-auto max-w-7xl">
-                        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                            <div
-                                data-reveal
-                                class="section-shell lift-card rounded-[2rem] p-7 sm:p-8"
-                            >
-                                <div
-                                    class="text-[11px] font-semibold tracking-[0.24em] text-[#a37b54] uppercase"
-                                >
-                                    Social proof
-                                </div>
-                                <h2
-                                    class="mt-5 max-w-[13ch] text-3xl font-semibold tracking-[-0.05em] text-[#24140b] sm:text-[2.8rem]"
-                                >
-                                    The product now looks closer to the quality
-                                    buyers expect from premium SaaS.
-                                </h2>
-                                <p
-                                    class="mt-5 text-base leading-8 text-[#71553a]"
-                                >
-                                    The new visual system makes the story more
-                                    believable by pairing richer mockups with
-                                    stronger quotes, cleaner proof cards, and
-                                    better pacing between sections.
-                                </p>
-
-                                <div class="mt-8 grid gap-4 sm:grid-cols-3">
-                                    <div
-                                        v-for="item in heroStats"
-                                        :key="`proof-${item.label}`"
-                                        class="rounded-[1.4rem] border border-[#eadccf] bg-white/70 px-4 py-4 text-[#24140b] shadow-[0_16px_34px_rgba(53,31,15,0.07)]"
-                                    >
-                                        <div
-                                            class="text-2xl font-semibold tracking-[-0.05em]"
-                                        >
-                                            {{ item.value }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-xs leading-5 text-[#71553a]"
-                                        >
-                                            {{ item.label }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid gap-6 md:grid-cols-2">
-                                <article
-                                    v-for="(testimonial, index) in testimonials"
-                                    :key="testimonial.name"
-                                    data-reveal
-                                    :style="revealDelay(index)"
-                                    class="section-shell-dark lift-card rounded-[2rem] p-6"
-                                >
-                                    <div
-                                        class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                    >
-                                        Customer perspective
-                                    </div>
-                                    <p
-                                        class="mt-5 text-base leading-8 text-[#f6ecdf]"
-                                    >
-                                        “{{ testimonial.quote }}”
-                                    </p>
-                                    <div
-                                        class="mt-8 border-t border-white/10 pt-5"
-                                    >
-                                        <div
-                                            class="text-base font-semibold text-white"
-                                        >
-                                            {{ testimonial.name }}
-                                        </div>
-                                        <div
-                                            class="mt-1 text-sm text-[#d8c3ae]"
-                                        >
-                                            {{ testimonial.role }} ·
-                                            {{ testimonial.company }}
-                                        </div>
-                                    </div>
-                                </article>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    id="pricing"
-                    class="px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
-                >
-                    <div class="mx-auto max-w-7xl">
-                        <div
-                            data-reveal
-                            class="section-shell-dark lift-card overflow-hidden rounded-[2.2rem] p-6 sm:p-8 lg:p-10"
-                        >
-                            <div
-                                class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
-                            >
-                                <div class="max-w-3xl">
-                                    <div
-                                        class="text-[11px] font-semibold tracking-[0.24em] text-[#caa783] uppercase"
-                                    >
-                                        Pricing
-                                    </div>
-                                    <h2
-                                        class="mt-5 text-3xl font-semibold tracking-[-0.05em] text-white sm:text-[3rem]"
-                                    >
-                                        Commercially clear, visually mature, and
-                                        ready for real teams.
-                                    </h2>
-                                    <p
-                                        class="mt-5 text-base leading-8 text-[#d8c3ae]"
-                                    >
-                                        The pricing section now feels
-                                        substantial instead of flat: warmer
-                                        contrast, stronger cards, clearer
-                                        hierarchy, and a more premium toggle
-                                        treatment.
-                                    </p>
-                                </div>
-
-                                <div
-                                    class="inline-flex rounded-full border border-white/10 bg-white/6 p-1 shadow-[0_16px_34px_rgba(0,0,0,0.2)]"
-                                >
-                                    <button
-                                        type="button"
-                                        class="cursor-pointer rounded-full px-5 py-2 text-sm font-medium transition"
-                                        :class="
-                                            billingCycle === 'monthly'
-                                                ? 'bg-white text-[#231108]'
-                                                : 'text-[#d8c3ae] hover:text-white'
-                                        "
-                                        @click="billingCycle = 'monthly'"
-                                    >
-                                        Monthly
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="cursor-pointer rounded-full px-5 py-2 text-sm font-medium transition"
-                                        :class="
-                                            billingCycle === 'annual'
-                                                ? 'bg-[linear-gradient(135deg,_#f6d3a2_0%,_#f0b36a_52%,_#b97433_100%)] text-[#231108]'
-                                                : 'text-[#d8c3ae] hover:text-white'
-                                        "
-                                        @click="billingCycle = 'annual'"
-                                    >
-                                        Annual
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="mt-8 grid gap-5 xl:grid-cols-4">
-                                <article
-                                    v-for="(
-                                        plan, index
-                                    ) in displayedPricingPlans"
-                                    :key="plan.name"
-                                    :style="revealDelay(index, 90)"
-                                    class="pricing-card flex h-full flex-col rounded-[1.9rem] border p-6"
-                                    :class="
-                                        plan.highlighted
-                                            ? 'border-[#f0b36a]/36 bg-[linear-gradient(180deg,_rgba(255,235,207,0.12)_0%,_rgba(255,183,118,0.08)_100%)] shadow-[0_28px_80px_rgba(240,179,106,0.14)]'
-                                            : 'border-white/10 bg-white/6'
-                                    "
-                                >
-                                    <div
-                                        class="flex items-start justify-between gap-4"
-                                    >
-                                        <div>
-                                            <div
-                                                class="text-xl font-semibold text-white"
-                                            >
-                                                {{ plan.name }}
-                                            </div>
-                                            <div
-                                                class="mt-2 text-sm leading-6 text-[#d8c3ae]"
-                                            >
-                                                {{ plan.description }}
-                                            </div>
-                                        </div>
-                                        <div
-                                            v-if="plan.showBadge"
-                                            class="rounded-full border border-[#f6d3a2]/40 bg-[rgba(246,211,162,0.14)] px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#f1cb9a] uppercase"
-                                        >
-                                            {{ plan.badge }}
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-8">
-                                        <div
-                                            class="text-4xl font-semibold tracking-[-0.08em] text-white"
-                                        >
-                                            {{ plan.displayPrice }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-xs text-[#cdb49a]"
-                                        >
-                                            {{ plan.billingText }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-xs text-[#a9855f]"
-                                        >
-                                            {{ plan.savingsText }}
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-6 space-y-3">
-                                        <div
-                                            v-for="feature in plan.features"
-                                            :key="feature"
-                                            class="flex items-start gap-3 text-sm text-[#ece0d2]"
-                                        >
-                                            <Check
-                                                class="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#f1cb9a]"
-                                            />
-                                            <span>{{ feature }}</span>
-                                        </div>
-                                    </div>
-
-                                    <Link
-                                        :href="
-                                            plan.name === 'Enterprise'
-                                                ? contact()
-                                                : !$page.props.auth.user &&
-                                                    canRegister
-                                                  ? register()
-                                                  : dashboard()
-                                        "
-                                        class="landing-cta mt-8 inline-flex min-h-[3.2rem] items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold"
-                                        :class="
-                                            plan.highlighted
-                                                ? 'border-[#ffdda8]/30 bg-[linear-gradient(135deg,_#f6d3a2_0%,_#f0b36a_52%,_#b97433_100%)] text-[#231108]'
-                                                : 'border-white/12 bg-white/6 text-white'
-                                        "
-                                    >
-                                        <span>{{ plan.cta }}</span>
-                                        <ArrowRight
-                                            class="landing-cta-arrow h-4 w-4"
-                                        />
-                                    </Link>
-                                </article>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="faq" class="px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-                    <div class="mx-auto max-w-7xl">
-                        <div class="grid gap-6 lg:grid-cols-[0.76fr_1.24fr]">
-                            <div
-                                data-reveal
-                                class="section-shell lift-card rounded-[2rem] p-7 sm:p-8"
-                            >
-                                <div
-                                    class="text-[11px] font-semibold tracking-[0.24em] text-[#a37b54] uppercase"
-                                >
-                                    FAQ
-                                </div>
-                                <h2
-                                    class="mt-5 max-w-[11ch] text-3xl font-semibold tracking-[-0.05em] text-[#24140b] sm:text-[2.8rem]"
-                                >
-                                    Common questions, presented with more weight
-                                    and clarity.
-                                </h2>
-                                <p
-                                    class="mt-5 text-base leading-8 text-[#71553a]"
-                                >
-                                    The FAQ and contact areas now feel like part
-                                    of the same premium story, with stronger
-                                    cards, cleaner hierarchy, and a better final
-                                    conversion rhythm.
-                                </p>
-
-                                <div
-                                    class="mt-8 rounded-[1.6rem] border border-[#eadccf] bg-white/70 p-5"
-                                >
-                                    <div
-                                        class="text-[11px] font-semibold tracking-[0.18em] text-[#a37b54] uppercase"
-                                    >
-                                        Demo agenda
-                                    </div>
-                                    <div class="mt-4 space-y-3">
-                                        <div
-                                            v-for="item in demoOptions"
-                                            :key="item"
-                                            class="flex items-start gap-3 text-sm text-[#483020]"
-                                        >
-                                            <span
-                                                class="mt-2 h-1.5 w-1.5 rounded-full bg-[#24140b]"
-                                            />
-                                            <span>{{ item }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid gap-6">
-                                <details
-                                    v-for="(item, index) in faqItems"
-                                    :key="item.question"
-                                    data-reveal
-                                    :style="revealDelay(index, 80)"
-                                    class="faq-card rounded-[1.8rem] border border-white/10 bg-[rgba(20,12,10,0.74)] px-6 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl"
-                                    :open="index === 0"
-                                >
-                                    <summary
-                                        class="cursor-pointer list-none pr-8 text-lg font-semibold tracking-[-0.04em] text-white"
-                                    >
-                                        {{ item.question }}
-                                    </summary>
-                                    <p
-                                        class="mt-4 max-w-3xl text-sm leading-7 text-[#d8c3ae]"
-                                    >
-                                        {{ item.answer }}
-                                    </p>
-                                </details>
-
-                                <div class="grid gap-6 md:grid-cols-2">
-                                    <div
-                                        data-reveal
-                                        :style="revealDelay(4, 80)"
-                                        class="section-shell-dark lift-card rounded-[1.8rem] p-6"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#caa783] uppercase"
-                                        >
-                                            Need a walkthrough?
-                                        </div>
-                                        <div
-                                            class="mt-4 text-2xl font-semibold text-white"
-                                        >
-                                            Get a guided look at your lead
-                                            workflow.
-                                        </div>
-                                        <p
-                                            class="mt-4 text-sm leading-7 text-[#d8c3ae]"
-                                        >
-                                            We can map your routing logic,
-                                            ownership model, and follow-up
-                                            expectations against the platform
-                                            live.
-                                        </p>
-                                        <Link
-                                            :href="contact()"
-                                            class="landing-cta mt-6 inline-flex min-h-[3.1rem] items-center gap-2 rounded-full border border-white/12 bg-white/6 px-5 py-3 text-sm font-semibold text-white"
-                                        >
-                                            <span>Book a demo</span>
-                                            <ArrowRight
-                                                class="landing-cta-arrow h-4 w-4"
-                                            />
-                                        </Link>
-                                    </div>
-
-                                    <div
-                                        data-reveal
-                                        :style="revealDelay(5, 80)"
-                                        class="section-shell lift-card rounded-[1.8rem] p-6"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#a37b54] uppercase"
-                                        >
-                                            Contact
-                                        </div>
-                                        <div
-                                            class="mt-4 text-2xl font-semibold text-[#24140b]"
-                                        >
-                                            sales@leadnest.com
-                                        </div>
-                                        <p
-                                            class="mt-4 text-sm leading-7 text-[#71553a]"
-                                        >
-                                            Use this path for enterprise
-                                            planning, security review, or
-                                            structured onboarding questions.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    class="px-4 pt-10 pb-12 sm:px-6 lg:px-8 lg:pt-14 lg:pb-16"
-                >
-                    <div class="mx-auto max-w-7xl">
-                        <div
-                            data-reveal
-                            class="final-shell relative overflow-hidden rounded-[2.4rem] px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
-                        >
-                            <img
-                                :src="leadnestHeroTexture"
-                                alt="LeadNest CTA texture"
-                                class="pointer-events-none absolute inset-0 h-full w-full scale-[1.1] object-cover opacity-30 mix-blend-screen"
-                            />
-                            <div
-                                class="relative z-10 grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center"
-                            >
-                                <div>
-                                    <div
-                                        class="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-[11px] font-semibold tracking-[0.2em] text-[#f1cb9a] uppercase"
-                                    >
-                                        Final CTA
-                                    </div>
-                                    <h2
-                                        class="mt-5 max-w-[11ch] text-3xl font-semibold tracking-[-0.05em] text-white sm:text-[3.2rem]"
-                                    >
-                                        The product should feel premium before
-                                        the first conversation.
-                                    </h2>
-                                    <p
-                                        class="mt-5 max-w-2xl text-base leading-8 text-[#dac6b1]"
-                                    >
-                                        LeadNest now tells a stronger story from
-                                        top to bottom: warmer mood, richer
-                                        composition, better mockups, and a much
-                                        more attractive conversion path.
-                                    </p>
-                                </div>
-
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <div
-                                        class="rounded-[1.7rem] border border-white/10 bg-white/7 px-5 py-5 text-[#f6ecdf] backdrop-blur"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                        >
-                                            Primary CTA
-                                        </div>
-                                        <div
-                                            class="mt-3 text-xl font-semibold text-white"
-                                        >
-                                            Start with a focused live
-                                            walkthrough.
-                                        </div>
-                                        <Link
-                                            :href="contact()"
-                                            class="landing-cta mt-5 inline-flex min-h-[3.1rem] items-center gap-2 rounded-full border border-[#ffdda8]/30 bg-[linear-gradient(135deg,_#f6d3a2_0%,_#f0b36a_52%,_#b97433_100%)] px-5 py-3 text-sm font-semibold text-[#231108]"
-                                        >
-                                            <span>Book a demo</span>
-                                            <ArrowRight
-                                                class="landing-cta-arrow h-4 w-4"
-                                            />
-                                        </Link>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[1.7rem] border border-white/10 bg-black/18 px-5 py-5 text-[#f6ecdf]"
-                                    >
-                                        <div
-                                            class="text-[11px] font-semibold tracking-[0.18em] text-[#f1cb9a] uppercase"
-                                        >
-                                            Product promise
-                                        </div>
-                                        <div
-                                            class="mt-3 text-xl font-semibold text-white"
-                                        >
-                                            Cleaner lead operations with higher
-                                            perceived quality.
-                                        </div>
-                                        <p
-                                            class="mt-4 text-sm leading-7 text-[#dac6b1]"
-                                        >
-                                            More believable visuals, stronger
-                                            hierarchy, and calmer interaction
-                                            design make the entire brand feel
-                                            more mature.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <footer
-                            class="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-[#bda68f] lg:flex-row lg:items-center lg:justify-between"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-sm font-semibold text-white"
-                                >
-                                    LN
-                                </div>
-                                <div>
-                                    <div class="font-semibold text-white">
-                                        LeadNest
-                                    </div>
-                                    <div
-                                        class="text-xs tracking-[0.18em] text-[#9f8368] uppercase"
-                                    >
-                                        Premium lead operations software
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap gap-x-6 gap-y-2">
-                                <a
-                                    href="#platform"
-                                    class="transition hover:text-white"
-                                    >Platform</a
-                                >
-                                <a
-                                    href="#workflow"
-                                    class="transition hover:text-white"
-                                    >Workflow</a
-                                >
-                                <a
-                                    href="#pricing"
-                                    class="transition hover:text-white"
-                                    >Pricing</a
-                                >
-                                <a
-                                    href="#faq"
-                                    class="transition hover:text-white"
-                                    >FAQ</a
-                                >
-                                <Link
-                                    :href="contact()"
-                                    class="transition hover:text-white"
-                                >
-                                    Contact
-                                </Link>
-                            </div>
-
                             <div>
-                                &copy; 2026 LeadNest. All rights reserved.
+                                <div class="f-icon">
+                                    <component :is="item.icon" />
+                                </div>
+                                <div class="f-title">{{ item.title }}</div>
+                                <p class="f-desc">{{ item.description }}</p>
                             </div>
-                        </footer>
+                            <div
+                                v-if="item.wide"
+                                class="f-anim"
+                                aria-hidden="true"
+                            >
+                                <div class="bar" />
+                                <div class="bar" />
+                                <div class="bar" />
+                                <div class="bar" />
+                                <div class="bar" />
+                                <div class="bar" />
+                                <div class="bar" />
+                            </div>
+                        </article>
                     </div>
-                </section>
-            </main>
+                </div>
+            </section>
+
+            <section id="industries">
+                <div class="si">
+                    <div class="slabel reveal">Industries Served</div>
+                    <h2 class="reveal">
+                        Leads across every <em>major sector</em><br />
+                        in the UAE
+                    </h2>
+
+                    <div class="ind-grid">
+                        <article
+                            v-for="(item, index) in industries"
+                            :key="item.name"
+                            class="ind-card reveal"
+                            :style="{
+                                transitionDelay: `${(index % 4) * 0.05}s`,
+                            }"
+                        >
+                            <div class="ind-icon">
+                                <component :is="item.icon" />
+                            </div>
+                            <div class="ind-name">{{ item.name }}</div>
+                            <div class="ind-sub">{{ item.sub }}</div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="numbers">
+                <div class="si zero-pad">
+                    <div class="num-grid">
+                        <article
+                            v-for="(item, index) in numberCards"
+                            :key="item.label"
+                            class="num-card reveal"
+                            :style="{ transitionDelay: `${index * 0.08}s` }"
+                        >
+                            <div class="num-val">
+                                {{ item.value }}<span>{{ item.suffix }}</span>
+                            </div>
+                            <div class="num-lbl">{{ item.label }}</div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pricing">
+                <div class="si">
+                    <div class="p-header">
+                        <div class="slabel reveal centered">Pricing</div>
+                        <h2 class="reveal">
+                            Transparent pricing.<br />
+                            <em>Exceptional</em> value.
+                        </h2>
+                        <p class="sdesc reveal centered-copy">
+                            No hidden fees. No lock-ins. Scale as your pipeline
+                            grows.
+                        </p>
+                    </div>
+
+                    <div class="p-grid">
+                        <article
+                            v-for="(item, index) in pricingPlans"
+                            :key="item.name"
+                            class="p-card reveal"
+                            :class="{ featured: item.featured }"
+                            :style="{ transitionDelay: `${index * 0.08}s` }"
+                        >
+                            <div v-if="item.badge" class="feat-badge">
+                                {{ item.badge }}
+                            </div>
+                            <div class="p-tier">{{ item.name }}</div>
+                            <div
+                                class="p-amount"
+                                :class="{ compact: item.price === 'Custom' }"
+                            >
+                                <template v-if="item.price !== 'Custom'">
+                                    <sup>AED</sup>{{ item.price }}
+                                </template>
+                                <template v-else>
+                                    {{ item.price }}
+                                </template>
+                            </div>
+                            <div class="p-period">{{ item.period }}</div>
+                            <div class="p-div" />
+                            <ul class="p-feats">
+                                <li
+                                    v-for="feature in item.features"
+                                    :key="feature"
+                                >
+                                    {{ feature }}
+                                </li>
+                            </ul>
+                            <Link :href="contact()" class="p-btn">
+                                {{ item.cta }}
+                            </Link>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="testimonials">
+                <div class="si">
+                    <div class="t-header">
+                        <div class="slabel reveal centered">Testimonials</div>
+                        <h2 class="reveal">
+                            Trusted by UAE's<br />
+                            <em>leading</em> businesses
+                        </h2>
+                    </div>
+
+                    <div class="t-grid">
+                        <article
+                            v-for="(item, index) in testimonials"
+                            :key="item.name"
+                            class="t-card reveal"
+                            :style="{ transitionDelay: `${index * 0.12}s` }"
+                        >
+                            <div class="t-stars">
+                                <span
+                                    v-for="star in 5"
+                                    :key="star"
+                                    class="t-star"
+                                    >★</span
+                                >
+                            </div>
+                            <div class="t-qmark">"</div>
+                            <p class="t-text">{{ item.quote }}</p>
+                            <div class="t-div" />
+                            <div class="t-author">
+                                <div class="t-avatar">{{ item.initials }}</div>
+                                <div>
+                                    <div class="t-name">{{ item.name }}</div>
+                                    <div class="t-company">
+                                        {{ item.company }}
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cta">
+                <div class="cta-inner">
+                    <div class="cta-text">
+                        <h2 class="reveal">
+                            Ready to fill your pipeline<br />
+                            with <em>qualified</em> leads?
+                        </h2>
+                        <p class="reveal">
+                            Join growing UAE businesses already using LeadNest
+                            to improve sales quality.
+                        </p>
+                    </div>
+                    <div class="reveal">
+                        <Link :href="contact()" class="btn-gold">
+                            Start Today
+                            <ArrowRight class="h-4 w-4" />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <div class="ft">
+                    <div class="fb-brand">
+                        <Link :href="home()" class="logo">
+                            <div class="logo-mark">LN</div>
+                            <span class="logo-text light"
+                                >Lead<span>Nest</span></span
+                            >
+                        </Link>
+                        <p>
+                            UAE's premium B2B lead generation platform,
+                            connecting verified leads with serious buyers across
+                            major industries.
+                        </p>
+                    </div>
+
+                    <div class="ft-col">
+                        <h4>Platform</h4>
+                        <ul>
+                            <li
+                                v-for="item in navItems"
+                                :key="`footer-${item.label}`"
+                            >
+                                <a :href="item.href">{{ item.label }}</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="ft-col">
+                        <h4>Account</h4>
+                        <ul>
+                            <li v-if="!$page.props.auth.user && canRegister">
+                                <Link :href="register()">Register</Link>
+                            </li>
+                            <li v-if="!$page.props.auth.user">
+                                <Link :href="login()">Login</Link>
+                            </li>
+                            <li v-if="$page.props.auth.user">
+                                <Link :href="dashboard()">Dashboard</Link>
+                            </li>
+                            <li>
+                                <Link :href="contact()">Contact</Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="ft-col">
+                        <h4>Company</h4>
+                        <ul>
+                            <li>
+                                <Link :href="contact()">Talk to Sales</Link>
+                            </li>
+                            <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="#testimonials">Testimonials</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="fb-bottom">
+                    <p>© 2026 LeadNest. All rights reserved.</p>
+                    <div class="fb-links">
+                        <Link :href="contact()">Contact</Link>
+                        <Link :href="home()">Home</Link>
+                    </div>
+                </div>
+            </footer>
         </div>
     </PublicLayout>
 </template>
 
 <style scoped>
-[data-reveal] {
-    opacity: 0;
-    transform: translateY(28px);
-    filter: blur(10px);
+:global(html) {
+    scroll-behavior: auto;
+}
+
+.leadnest-white {
+    --black: #0d0d0d;
+    --white: #ffffff;
+    --off: #f8f7f4;
+    --off2: #f2f0eb;
+    --g2: #333333;
+    --g3: #555555;
+    --g4: #888888;
+    --g6: #dddddd;
+    --g7: #ebebeb;
+    --gold: #b8892a;
+    --gold-l: #d4a84b;
+    --gold-ll: #f0d080;
+    --gold-bg: #fdf9f0;
+    --fd: 'Playfair Display', serif;
+    --fb: 'Outfit', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+    --r: 6px;
+    --shadow: 0 2px 24px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.12);
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--fb);
+    overflow-x: hidden;
+}
+
+.leadnest-white *,
+.leadnest-white *::before,
+.leadnest-white *::after {
+    box-sizing: border-box;
+}
+
+.site-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 5rem;
     transition:
-        opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    transition-delay: var(--reveal-delay, 0ms);
+        background 0.4s,
+        box-shadow 0.4s,
+        padding 0.4s;
 }
 
-[data-reveal].is-visible {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-}
-
-.landing-page {
-    isolation: isolate;
-}
-
-main > section + section {
-    content-visibility: auto;
-    contain-intrinsic-size: 960px;
-}
-
-.landing-mesh {
-    background:
-        radial-gradient(
-            circle at 18% 16%,
-            rgba(255, 245, 232, 0.72),
-            transparent 24%
-        ),
-        radial-gradient(
-            circle at 80% 12%,
-            rgba(255, 207, 154, 0.34),
-            transparent 22%
-        ),
-        radial-gradient(
-            circle at 50% 34%,
-            rgba(189, 122, 73, 0.16),
-            transparent 26%
-        ),
-        linear-gradient(
-            180deg,
-            #f6ede4 0%,
-            #edd9ca 22%,
-            #dfc3af 48%,
-            #d8b49e 70%,
-            #ead8ca 100%
-        );
-}
-
-.landing-grid {
-    background-image:
-        linear-gradient(to right, rgba(104, 68, 46, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(104, 68, 46, 0.05) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: radial-gradient(circle at top, black 30%, transparent 84%);
-}
-
-.hero-title-accent {
-    background: linear-gradient(
-        135deg,
-        #f7dcb6 0%,
-        #f0b36a 42%,
-        #fff4de 68%,
-        #bc7637 100%
-    );
-    background-clip: text;
-    color: transparent;
-    -webkit-background-clip: text;
-}
-
-.hero-stat-card {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 252, 247, 0.82) 0%,
-            rgba(255, 246, 237, 0.62) 100%
-        ),
-        linear-gradient(
-            180deg,
-            rgba(246, 211, 162, 0.16) 0%,
-            rgba(246, 211, 162, 0.02) 100%
-        );
-    box-shadow: 0 24px 60px rgba(91, 58, 35, 0.1);
-    backdrop-filter: blur(16px);
-}
-
-.hero-copy-glow {
-    background: radial-gradient(
-        circle,
-        rgba(255, 248, 239, 0.94) 0%,
-        rgba(255, 220, 181, 0.42) 34%,
-        rgba(255, 220, 181, 0) 74%
-    );
-    filter: blur(28px);
-    opacity: 0.9;
-}
-
-.hero-copy-column::after {
-    content: '';
-    position: absolute;
-    inset: 2rem auto auto -1.25rem;
-    width: 1px;
-    height: 14rem;
-    background: linear-gradient(
-        180deg,
-        rgba(210, 145, 85, 0.32),
-        rgba(210, 145, 85, 0)
-    );
-    opacity: 0.8;
-    pointer-events: none;
-}
-
-.hero-atmosphere {
-    background:
-        radial-gradient(
-            circle at 18% 18%,
-            rgba(255, 248, 239, 0.98),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at 76% 16%,
-            rgba(255, 210, 157, 0.36),
-            transparent 24%
-        ),
-        radial-gradient(
-            circle at 54% 52%,
-            rgba(170, 101, 55, 0.18),
-            transparent 34%
-        );
-}
-
-.hero-atmosphere::before,
-.hero-atmosphere::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-.hero-atmosphere::before {
-    background:
-        linear-gradient(
-            118deg,
-            rgba(255, 255, 255, 0) 30%,
-            rgba(255, 233, 205, 0.44) 48%,
-            rgba(255, 255, 255, 0) 66%
-        ),
-        linear-gradient(
-            152deg,
-            rgba(255, 255, 255, 0) 36%,
-            rgba(191, 120, 70, 0.16) 54%,
-            rgba(255, 255, 255, 0) 74%
-        );
-    filter: blur(16px);
-}
-
-.hero-atmosphere::after {
-    background-image: url('/a_web_design_mockup_of_leadnest_a_lead_management.png.png');
-    background-position: center top;
-    background-size: cover;
-    opacity: 0.16;
-    mix-blend-mode: screen;
-    filter: blur(3px) saturate(0.95);
-    mask-image: linear-gradient(
-        180deg,
-        black 0%,
-        rgba(0, 0, 0, 0.7) 56%,
-        transparent 100%
-    );
-}
-
-.hero-stage {
-    perspective: 1800px;
-}
-
-.hero-stage::before {
-    content: '';
-    position: absolute;
-    inset: 14% 6% 10% 10%;
-    border-radius: 2.8rem;
-    background:
-        radial-gradient(
-            circle at 30% 24%,
-            rgba(255, 241, 223, 0.22),
-            transparent 18%
-        ),
-        radial-gradient(
-            circle at 72% 18%,
-            rgba(240, 179, 106, 0.2),
-            transparent 20%
-        ),
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.06),
-            rgba(255, 255, 255, 0)
-        );
-    filter: blur(26px);
-    opacity: 0.9;
-    pointer-events: none;
-}
-
-.hero-stage-core-glow {
-    border-radius: 999px;
-    background: radial-gradient(
-        circle,
-        rgba(255, 229, 196, 0.42) 0%,
-        rgba(255, 195, 136, 0.18) 32%,
-        rgba(255, 195, 136, 0) 72%
-    );
-    filter: blur(36px);
-}
-
-.hero-stage-halo {
-    border-radius: 999px;
-    background: radial-gradient(
-        circle,
-        rgba(255, 214, 168, 0.34) 0%,
-        rgba(255, 214, 168, 0.08) 34%,
-        rgba(255, 214, 168, 0) 74%
-    );
-    filter: blur(46px);
-}
-
-.hero-stage-vignette {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background:
-        radial-gradient(
-            circle at 50% 8%,
-            rgba(255, 244, 229, 0.1),
-            transparent 24%
-        ),
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.04),
-            rgba(255, 255, 255, 0)
-        );
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.hero-stage-ribbon {
-    border-radius: 999px;
-    background: linear-gradient(
-        120deg,
-        rgba(255, 255, 255, 0),
-        rgba(255, 223, 182, 0.62),
-        rgba(255, 255, 255, 0)
-    );
-    filter: blur(22px);
-    opacity: 0.65;
-    transform: rotate(-10deg);
-    pointer-events: none;
-}
-
-.hero-stage-ribbon-right {
-    animation-delay: -3.5s;
-    transform: rotate(12deg);
-}
-
-.hero-device {
-    transform: translate3d(var(--hero-shift-x, 0), var(--hero-shift-y, 0), 0)
-        rotateX(var(--hero-rotate-x, 0)) rotateY(var(--hero-rotate-y, 0))
-        rotateZ(-1.2deg) scale(1.02);
-    transform-style: preserve-3d;
-    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.hero-backplate {
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+.site-nav.scrolled {
+    background: rgba(255, 255, 255, 0.96);
     box-shadow:
-        0 34px 110px rgba(109, 63, 33, 0.18),
-        0 0 90px rgba(255, 215, 169, 0.16);
-    backdrop-filter: blur(18px);
-    pointer-events: none;
+        0 1px 0 var(--g7),
+        0 4px 24px rgba(0, 0, 0, 0.06);
+    padding: 0.9rem 5rem;
+    backdrop-filter: blur(12px);
 }
 
-.hero-backplate-main {
-    background: linear-gradient(
-        145deg,
-        rgba(255, 248, 239, 0.4) 0%,
-        rgba(255, 214, 168, 0.12) 100%
-    );
-    transform: rotate(-6deg) translateZ(-20px) scale(1.03);
-}
-
-.hero-backplate-secondary {
-    background: linear-gradient(
-        145deg,
-        rgba(255, 248, 239, 0.5) 0%,
-        rgba(255, 214, 168, 0.18) 100%
-    );
-    transform: rotate(-10deg) translateZ(-34px) scale(1.02);
-}
-
-.hero-device-shell {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background:
-        radial-gradient(
-            circle at 14% 14%,
-            rgba(255, 239, 220, 0.18),
-            transparent 20%
-        ),
-        radial-gradient(
-            circle at 84% 12%,
-            rgba(240, 179, 106, 0.24),
-            transparent 22%
-        ),
-        linear-gradient(
-            150deg,
-            rgba(47, 30, 21, 0.98) 0%,
-            rgba(28, 18, 14, 0.98) 42%,
-            rgba(13, 10, 10, 1) 100%
-        );
-    box-shadow:
-        0 56px 160px rgba(72, 43, 20, 0.3),
-        0 0 90px rgba(255, 203, 147, 0.16),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.hero-device-shell::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 26%),
-        linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0.035) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.035) 1px,
-            transparent 1px
-        );
-    background-size:
-        auto,
-        72px 72px,
-        72px 72px;
-    mask-image: linear-gradient(180deg, black 0%, rgba(0, 0, 0, 0.24) 100%);
-}
-
-.hero-device-shell::before {
-    content: '';
-    position: absolute;
-    inset: -12%;
-    pointer-events: none;
-    background:
-        radial-gradient(
-            circle at 30% 18%,
-            rgba(255, 232, 204, 0.18),
-            transparent 22%
-        ),
-        radial-gradient(
-            circle at 78% 12%,
-            rgba(255, 203, 147, 0.22),
-            transparent 22%
-        );
-    filter: blur(34px);
-}
-
-.hero-device-shell:hover {
-    box-shadow:
-        0 62px 172px rgba(72, 43, 20, 0.34),
-        0 0 100px rgba(255, 203, 147, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.hero-light {
-    width: 18rem;
-    height: 18rem;
-    border-radius: 999px;
-    filter: blur(90px);
-    pointer-events: none;
-}
-
-.hero-light-left {
-    background: radial-gradient(
-        circle,
-        rgba(255, 235, 205, 0.66) 0%,
-        rgba(255, 221, 174, 0) 68%
-    );
-}
-
-.hero-light-right {
-    background: radial-gradient(
-        circle,
-        rgba(240, 179, 106, 0.42) 0%,
-        rgba(240, 179, 106, 0) 68%
-    );
-}
-
-.hero-light-bottom {
-    background: radial-gradient(
-        circle,
-        rgba(126, 74, 34, 0.28) 0%,
-        rgba(126, 74, 34, 0) 68%
-    );
-}
-
-.floating-card {
-    animation: float-card 12s ease-in-out infinite;
-    will-change: transform;
-    backdrop-filter: blur(8px);
-}
-
-.floating-card-right {
-    animation-delay: 1.1s;
-}
-
-.floating-card-profile {
-    animation-delay: 2.2s;
-}
-
-.floating-card-center {
-    animation-delay: 1.6s;
-}
-
-.floating-card-note {
-    animation-delay: 0.8s;
-}
-
-.hero-micro-strip {
-    position: relative;
-}
-
-.hero-micro-strip::before {
-    content: '';
-    position: absolute;
-    inset: auto 0 calc(100% + 0.8rem) 0;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        rgba(185, 132, 84, 0.2),
-        rgba(185, 132, 84, 0)
-    );
-}
-
-.trust-strip {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(214, 193, 174, 0.88);
-    background:
-        radial-gradient(
-            circle at 14% 10%,
-            rgba(255, 247, 238, 0.9),
-            transparent 26%
-        ),
-        radial-gradient(
-            circle at 84% 12%,
-            rgba(240, 191, 136, 0.12),
-            transparent 24%
-        ),
-        linear-gradient(
-            180deg,
-            rgba(255, 252, 248, 0.9) 0%,
-            rgba(248, 240, 232, 0.96) 100%
-        );
-    box-shadow:
-        0 26px 70px rgba(74, 44, 21, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.72);
-    isolation: isolate;
-}
-
-.trust-strip-elevated {
-    box-shadow:
-        0 30px 88px rgba(74, 44, 21, 0.1),
-        0 0 70px rgba(240, 179, 106, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.72);
-}
-
-.trust-strip::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(to right, rgba(87, 56, 34, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(87, 56, 34, 0.04) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: linear-gradient(180deg, black 0%, transparent 100%);
-}
-
-.trust-strip::after {
-    content: '';
-    position: absolute;
-    inset: auto 2rem 0 2rem;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        rgba(206, 159, 113, 0),
-        rgba(206, 159, 113, 0.34),
-        rgba(206, 159, 113, 0)
-    );
-    pointer-events: none;
-}
-
-.trust-strip-elevated .trust-strip-label {
-    color: #8d6846;
-}
-
-.trust-strip-label {
+.logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: #9a7350;
+    gap: 0.8rem;
+    text-decoration: none;
 }
 
-.trust-strip-label-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #f2c88f 0%, #cf8d47 100%);
-    box-shadow: 0 0 18px rgba(207, 141, 71, 0.32);
-}
-
-.trust-logo-chip {
-    display: inline-flex;
+.logo-mark {
+    display: flex;
+    height: 36px;
+    width: 36px;
     align-items: center;
     justify-content: center;
-    min-height: 4.25rem;
-    padding: 1rem 1.25rem;
-    border: 1px solid rgba(214, 193, 174, 0.7);
-    border-radius: 1.2rem;
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.82) 0%,
-        rgba(252, 246, 239, 0.86) 100%
+    clip-path: polygon(
+        0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px)
     );
-    box-shadow:
-        0 14px 34px rgba(74, 44, 21, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.74);
-    transition:
-        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.28s ease,
-        background-color 0.28s ease;
+    background: var(--black);
+    color: var(--gold-l);
+    font-family: var(--fm);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
 }
 
-.trust-logo-chip:hover {
-    transform: translateY(-3px);
-    border-color: rgba(198, 145, 88, 0.52);
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.9) 0%,
-        rgba(252, 246, 239, 0.92) 100%
-    );
-    box-shadow:
-        0 18px 42px rgba(74, 44, 21, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.78);
+.logo-text {
+    color: var(--black);
+    font-family: var(--fd);
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
 }
 
-.trust-logo-wordmark {
-    font-size: 1.02rem;
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    color: #6b4d33;
-    opacity: 0.9;
+.logo-text span {
+    color: var(--gold);
 }
 
-.story-section::before {
+.logo-text.light {
+    color: var(--white);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.nav-links a {
+    position: relative;
+    color: var(--g3);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.nav-links a::after {
     content: '';
     position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(
-            circle at 14% 22%,
-            rgba(255, 242, 225, 0.28),
-            transparent 18%
-        ),
-        radial-gradient(
-            circle at 84% 18%,
-            rgba(219, 157, 99, 0.12),
-            transparent 20%
-        );
+    right: 100%;
+    bottom: -3px;
+    left: 0;
+    height: 1.5px;
+    background: var(--gold);
+    transition: right 0.35s;
 }
 
-.story-section::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 246, 236, 0.26) 0%,
-            rgba(255, 246, 236, 0) 16%
-        ),
-        linear-gradient(
-            90deg,
-            rgba(207, 156, 111, 0.08) 0%,
-            rgba(207, 156, 111, 0) 24%,
-            rgba(207, 156, 111, 0) 76%,
-            rgba(207, 156, 111, 0.08) 100%
-        );
+.nav-links a:hover {
+    color: var(--black);
 }
 
-.story-intro-panel {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(109, 67, 40, 0.14);
-    background:
-        radial-gradient(
-            circle at 16% 12%,
-            rgba(255, 240, 223, 0.12),
-            transparent 20%
-        ),
-        radial-gradient(
-            circle at 84% 12%,
-            rgba(240, 179, 106, 0.16),
-            transparent 22%
-        ),
-        linear-gradient(
-            145deg,
-            rgba(54, 36, 27, 0.98) 0%,
-            rgba(33, 22, 17, 0.98) 48%,
-            rgba(22, 15, 13, 1) 100%
-        );
-    box-shadow:
-        0 38px 120px rgba(68, 40, 20, 0.16),
-        0 0 80px rgba(240, 179, 106, 0.08);
+.nav-links a:hover::after {
+    right: 0;
 }
 
-.story-intro-panel::before,
-.story-visual-shell::before,
-.story-dark-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%),
-        linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px
-        );
-    background-size:
-        auto,
-        72px 72px,
-        72px 72px;
-    mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+.nav-cta {
+    border-radius: 2px;
+    background: var(--black);
+    color: var(--white) !important;
+    padding: 0.6rem 1.6rem;
 }
 
-.story-narrative-card {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.08) 0%,
-        rgba(255, 255, 255, 0.04) 100%
-    );
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+.nav-cta:hover {
+    background: var(--gold);
+    color: var(--black) !important;
 }
 
-.story-visual-shell {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(106, 64, 39, 0.14);
-    background:
-        radial-gradient(
-            circle at 18% 14%,
-            rgba(255, 247, 238, 0.12),
-            transparent 20%
-        ),
-        radial-gradient(
-            circle at 82% 12%,
-            rgba(240, 179, 106, 0.2),
-            transparent 22%
-        ),
-        linear-gradient(
-            145deg,
-            rgba(47, 31, 23, 0.98) 0%,
-            rgba(31, 21, 16, 0.98) 48%,
-            rgba(19, 14, 12, 1) 100%
-        );
-    box-shadow:
-        0 42px 130px rgba(68, 40, 20, 0.18),
-        0 0 90px rgba(240, 179, 106, 0.08);
-}
-
-.story-right-column {
-    position: relative;
-}
-
-.story-right-column::before {
-    content: '';
-    position: absolute;
-    inset: 1.5rem -1rem auto auto;
-    width: 18rem;
-    height: 18rem;
-    border-radius: 999px;
-    background: radial-gradient(
-        circle,
-        rgba(255, 219, 181, 0.24) 0%,
-        rgba(255, 219, 181, 0) 70%
-    );
-    filter: blur(34px);
-    pointer-events: none;
-}
-
-.story-visual-stage {
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        0 28px 84px rgba(0, 0, 0, 0.22);
-}
-
-.story-visual-stage::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(
-            circle at 18% 18%,
-            rgba(255, 238, 216, 0.16),
-            transparent 20%
-        ),
-        radial-gradient(
-            circle at 84% 14%,
-            rgba(240, 179, 106, 0.14),
-            transparent 22%
-        );
-}
-
-.story-main-visual {
-    transition:
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-        filter 0.55s ease;
-}
-
-.story-visual-shell:hover .story-main-visual {
-    transform: scale(1.025);
-    filter: saturate(1.02);
-}
-
-.story-support-screen {
-    transform: rotate(-5deg);
-    animation: float-card 14s ease-in-out infinite;
-    animation-delay: 1.1s;
-}
-
-.story-mini-card {
-    animation: float-card 9.4s ease-in-out infinite;
-}
-
-.story-mini-card-bottom {
-    animation-delay: 1.4s;
-}
-
-.story-soft-panel {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(226, 213, 200, 0.92);
-    background:
-        radial-gradient(
-            circle at 14% 14%,
-            rgba(255, 250, 244, 0.72),
-            transparent 22%
-        ),
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.96) 0%,
-            rgba(249, 242, 233, 0.98) 100%
-        );
-    box-shadow: 0 24px 70px rgba(74, 44, 21, 0.08);
-}
-
-.story-dark-panel {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(109, 67, 40, 0.12);
-    background:
-        radial-gradient(
-            circle at 18% 14%,
-            rgba(255, 242, 225, 0.1),
-            transparent 22%
-        ),
-        linear-gradient(
-            145deg,
-            rgba(46, 30, 22, 0.98) 0%,
-            rgba(30, 21, 17, 0.98) 48%,
-            rgba(20, 14, 12, 1) 100%
-        );
-    box-shadow: 0 28px 84px rgba(68, 40, 20, 0.16);
-}
-
-.section-shell,
-.section-shell-dark,
-.final-shell,
-.pricing-card,
-.lift-card {
-    transition:
-        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.35s ease,
-        background-color 0.35s ease;
-}
-
-.section-shell {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(234, 220, 207, 0.9);
-    background:
-        radial-gradient(
-            circle at 16% 12%,
-            rgba(255, 239, 220, 0.65),
-            transparent 22%
-        ),
-        radial-gradient(
-            circle at 86% 10%,
-            rgba(240, 179, 106, 0.12),
-            transparent 20%
-        ),
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.94) 0%,
-            rgba(249, 242, 233, 0.96) 100%
-        );
-    box-shadow: 0 34px 100px rgba(53, 31, 15, 0.1);
-    backdrop-filter: blur(18px);
-}
-
-.section-shell::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-        linear-gradient(to right, rgba(36, 20, 11, 0.045) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(36, 20, 11, 0.045) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: radial-gradient(circle at top, black 16%, transparent 88%);
-}
-
-.section-shell-dark {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(106, 64, 39, 0.12);
-    background:
-        radial-gradient(
-            circle at 18% 12%,
-            rgba(255, 241, 224, 0.12),
-            transparent 22%
-        ),
-        radial-gradient(
-            circle at 82% 14%,
-            rgba(240, 179, 106, 0.18),
-            transparent 22%
-        ),
-        linear-gradient(
-            145deg,
-            rgba(47, 31, 23, 0.96) 0%,
-            rgba(34, 22, 17, 0.98) 48%,
-            rgba(23, 15, 12, 1) 100%
-        );
-    box-shadow: 0 40px 120px rgba(68, 40, 20, 0.16);
-    backdrop-filter: blur(20px);
-}
-
-.section-shell-dark::before,
-.final-shell::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 28%),
-        linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px
-        );
-    background-size:
-        auto,
-        72px 72px,
-        72px 72px;
-    mask-image: radial-gradient(circle at top, black 20%, transparent 88%);
-}
-
-.final-shell {
-    border: 1px solid rgba(106, 64, 39, 0.12);
-    background:
-        radial-gradient(
-            circle at 20% 16%,
-            rgba(255, 239, 220, 0.14),
-            transparent 24%
-        ),
-        radial-gradient(
-            circle at 80% 12%,
-            rgba(240, 179, 106, 0.22),
-            transparent 22%
-        ),
-        linear-gradient(145deg, #352117 0%, #251812 44%, #18100d 100%);
-    box-shadow: 0 48px 140px rgba(68, 40, 20, 0.18);
-}
-
-.lift-card:hover,
-.pricing-card:hover {
-    transform: translateY(-6px);
-}
-
-.landing-cta {
-    position: relative;
-    overflow: hidden;
-    transition:
-        transform 0.44s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.44s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.32s ease,
-        background-color 0.32s ease,
-        color 0.32s ease;
-    will-change: transform;
-}
-
-.landing-cta::before {
-    content: '';
-    position: absolute;
-    inset: 1px;
-    border-radius: inherit;
-    background: linear-gradient(
-        120deg,
-        rgba(255, 255, 255, 0) 12%,
-        rgba(255, 255, 255, 0.28) 38%,
-        rgba(255, 255, 255, 0) 66%
-    );
-    transform: translate3d(-130%, 0, 0);
-    opacity: 0;
-    transition:
-        transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.4s ease;
-    pointer-events: none;
-}
-
-.landing-cta:hover {
-    transform: translateY(-3px);
-}
-
-.landing-cta:hover::before {
-    opacity: 1;
-    transform: translate3d(130%, 0, 0);
-}
-
-.landing-cta-primary:hover {
-    box-shadow: 0 32px 82px rgba(240, 179, 106, 0.34);
-}
-
-.landing-cta-secondary:hover {
-    border-color: rgba(117, 78, 51, 0.2);
-    background: rgba(255, 250, 244, 0.9);
-    box-shadow: 0 24px 60px rgba(91, 58, 35, 0.12);
-}
-
-.landing-cta-arrow {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.landing-cta:hover .landing-cta-arrow {
-    transform: translateX(5px);
-}
-
-.faq-card summary::-webkit-details-marker {
+.nav-cta::after {
     display: none;
 }
 
-@keyframes float-card {
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.hamburger span {
+    height: 1.5px;
+    width: 22px;
+    background: var(--black);
+}
+
+.mob-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    background: var(--white);
+}
+
+.mob-menu.open {
+    display: flex;
+}
+
+.mob-menu a {
+    color: var(--black);
+    font-family: var(--fd);
+    font-size: 2rem;
+    text-decoration: none;
+}
+
+.mob-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    border: none;
+    background: transparent;
+    color: var(--black);
+    font-size: 2rem;
+}
+
+#hero {
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    overflow: hidden;
+    background: var(--white);
+    padding: 10rem 5rem 5rem;
+}
+
+#hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+        circle,
+        rgba(0, 0, 0, 0.08) 1px,
+        transparent 1px
+    );
+    background-size: 28px 28px;
+    pointer-events: none;
+}
+
+#hero::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.hero-left,
+.hero-right {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.hero-left {
+    max-width: 620px;
+}
+
+.hero-right {
+    display: flex;
+    justify-content: flex-end;
+    padding-left: 4rem;
+}
+
+.hero-eyebrow,
+.slabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--gold);
+    font-family: var(--fm);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.hero-eyebrow::before,
+.slabel::before {
+    content: '';
+    height: 1px;
+    width: 28px;
+    background: var(--gold);
+}
+
+h1,
+h2 {
+    font-family: var(--fd);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    margin-bottom: 1.75rem;
+    font-size: clamp(3rem, 5.5vw, 5rem);
+    line-height: 1.08;
+}
+
+h2 {
+    margin-bottom: 1.25rem;
+    font-size: clamp(1.9rem, 3.8vw, 3rem);
+    line-height: 1.1;
+}
+
+h1 em,
+h2 em {
+    color: var(--gold);
+    font-style: italic;
+    font-weight: 400;
+}
+
+.hero-sub,
+.sdesc {
+    color: var(--g3);
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.8;
+}
+
+.hero-sub {
+    margin-bottom: 2.5rem;
+    max-width: 480px;
+    font-size: 1.02rem;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.btn-primary,
+.btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    border-radius: 2px;
+    padding: 0.9rem 2rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+        background 0.3s,
+        transform 0.3s;
+}
+
+.btn-primary {
+    background: var(--black);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--gold);
+    color: var(--black);
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    border-bottom: 1.5px solid var(--g6);
+    color: var(--g3);
+    padding-bottom: 2px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 3.5rem;
+    border-top: 1px solid var(--g7);
+    padding-top: 3rem;
+}
+
+.s-num,
+.num-val {
+    font-family: var(--fd);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.s-num {
+    color: var(--black);
+    font-size: 2.2rem;
+}
+
+.s-num span,
+.num-val span {
+    color: var(--gold);
+}
+
+.s-lbl,
+.num-lbl,
+.p-tier {
+    color: var(--g4);
+    font-family: var(--fm);
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.hero-visual {
+    position: relative;
+    width: 380px;
+}
+
+.hv-card {
+    border: 1px solid var(--g7);
+    border-radius: 12px;
+    background: var(--white);
+    padding: 1.8rem;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.5s ease;
+}
+
+.hv-card.c1 {
+    position: relative;
+    z-index: 3;
+    transform: rotate(-1deg);
+}
+
+.hv-card.c2 {
+    position: absolute;
+    top: 20px;
+    right: -16px;
+    left: 16px;
+    z-index: 2;
+    background: var(--off);
+    transform: rotate(1.5deg);
+}
+
+.hv-card.c3 {
+    position: absolute;
+    top: 40px;
+    right: -32px;
+    left: 32px;
+    z-index: 1;
+    background: var(--off2);
+    transform: rotate(3.5deg);
+}
+
+.hero-visual:hover .c1 {
+    transform: translateY(-8px) rotate(0deg);
+}
+
+.hero-visual:hover .c2 {
+    transform: translateY(-4px) rotate(0deg);
+}
+
+.hero-visual:hover .c3 {
+    transform: rotate(0deg);
+}
+
+.hv-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    border-radius: 2px;
+    background: var(--gold-bg);
+    padding: 0.25rem 0.7rem;
+    color: var(--gold);
+    font-family: var(--fm);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.hv-tag::before {
+    content: '●';
+    font-size: 0.45rem;
+}
+
+.hv-name {
+    margin-bottom: 0.3rem;
+    font-family: var(--fd);
+    font-size: 1.2rem;
+}
+
+.hv-company,
+.p-period,
+.ind-sub,
+.t-company {
+    color: var(--g4);
+}
+
+.hv-company {
+    margin-bottom: 1.2rem;
+    font-size: 0.82rem;
+}
+
+.hv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--g7);
+    padding: 0.65rem 0;
+}
+
+.hv-row:last-child {
+    border-bottom: none;
+}
+
+.hv-row-lbl {
+    color: var(--g4);
+    font-size: 0.78rem;
+}
+
+.hv-row-val {
+    color: var(--black);
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.hv-row-val.gold {
+    color: var(--gold);
+}
+
+.hv-badge {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.hv-badge.green {
+    background: #edf7ee;
+    color: #2d7a34;
+}
+
+.hv-badge.amber {
+    background: var(--gold-bg);
+    color: var(--gold);
+}
+
+.marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--g7);
+    border-bottom: 1px solid var(--g7);
+    background: var(--off);
+    padding: 1rem 0;
+}
+
+.marquee-track {
+    display: flex;
+    gap: 2.5rem;
+    white-space: nowrap;
+    animation: marquee 22s linear infinite;
+}
+
+.mi {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--g4);
+    font-family: var(--fm);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.mi::before {
+    content: '◆';
+    color: var(--gold);
+    font-size: 0.4rem;
+}
+
+section {
+    position: relative;
+}
+
+.si {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 7rem 5rem;
+}
+
+.zero-pad {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#hiw,
+#numbers,
+#cta,
+footer {
+    background: var(--black);
+}
+
+#hiw .slabel,
+#numbers .num-lbl,
+#cta h2,
+footer .logo-text,
+footer h4 {
+    color: var(--white);
+}
+
+#hiw .slabel::before {
+    background: var(--gold-l);
+}
+
+#hiw h2,
+#cta h2 {
+    color: var(--white);
+}
+
+#hiw .sdesc,
+#cta p,
+footer p,
+footer a {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.hiw-header,
+.f-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 4.5rem;
+}
+
+.hiw-grid,
+.num-grid {
+    display: grid;
+    gap: 1px;
+}
+
+.hiw-grid {
+    grid-template-columns: repeat(3, 1fr);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.step-card,
+.num-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--black);
+    transition: background 0.4s;
+}
+
+.step-card {
+    padding: 3.5rem 3rem;
+}
+
+.num-card {
+    padding: 3.5rem 3rem;
+    text-align: center;
+}
+
+.step-card:hover,
+.num-card:hover {
+    background: #111111;
+}
+
+.step-card::after {
+    content: '';
+    position: absolute;
+    right: 100%;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--gold);
+    transition: right 0.5s;
+}
+
+.step-card:hover::after {
+    right: 0;
+}
+
+.step-n {
+    margin-bottom: 2.5rem;
+    color: var(--gold);
+    font-family: var(--fm);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.step-icon-wrap,
+.f-icon,
+.ind-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-icon-wrap {
+    height: 56px;
+    width: 56px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(184, 137, 42, 0.3);
+    background: rgba(184, 137, 42, 0.05);
+}
+
+.step-icon-wrap :deep(svg) {
+    height: 22px;
+    width: 22px;
+    color: var(--gold-l);
+    stroke-width: 1.5;
+}
+
+.step-title,
+.f-title,
+.ind-name {
+    font-family: var(--fd);
+    font-weight: 500;
+}
+
+.step-title {
+    margin-bottom: 0.9rem;
+    color: var(--white);
+    font-size: 1.3rem;
+}
+
+.step-desc {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.85;
+}
+
+.step-num-bg {
+    position: absolute;
+    right: 2rem;
+    bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.025);
+    font-family: var(--fd);
+    font-size: 7rem;
+    font-weight: 700;
+    line-height: 1;
+    user-select: none;
+}
+
+#features {
+    background: var(--off);
+}
+
+.f-grid,
+.t-grid,
+.p-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.f-card,
+.p-card,
+.t-card {
+    border: 1px solid var(--g7);
+    border-radius: var(--r);
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.f-card {
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem;
+    transition:
+        transform 0.4s,
+        box-shadow 0.4s,
+        border-color 0.4s;
+}
+
+.f-card:hover,
+.p-card:hover,
+.t-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.f-card::before,
+.t-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.f-card::before {
+    inset: 0 auto auto 0;
+    height: 2px;
+    width: 100%;
+    background: transparent;
+    transition: background 0.4s;
+}
+
+.f-card:hover::before {
+    background: linear-gradient(90deg, var(--gold), var(--gold-ll));
+}
+
+.f-icon {
+    height: 46px;
+    width: 46px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--g7);
+    border-radius: var(--r);
+    background: var(--off);
+}
+
+.f-icon :deep(svg),
+.ind-icon :deep(svg) {
+    height: 20px;
+    width: 20px;
+    color: var(--gold);
+    stroke-width: 1.5;
+}
+
+.f-title {
+    margin-bottom: 0.7rem;
+    font-size: 1.15rem;
+}
+
+.f-desc {
+    color: var(--g3);
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.8;
+}
+
+.f-card.wide {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.f-anim {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 160px;
+    border: 1px solid var(--g7);
+    border-radius: var(--r);
+    background: var(--off);
+    padding: 1.5rem;
+}
+
+.bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(to top, var(--gold), var(--gold-ll));
+    animation: barPulse 2s ease-in-out infinite;
+}
+
+.bar:nth-child(1) {
+    height: 40%;
+}
+
+.bar:nth-child(2) {
+    height: 72%;
+    animation-delay: 0.15s;
+}
+
+.bar:nth-child(3) {
+    height: 55%;
+    animation-delay: 0.3s;
+}
+
+.bar:nth-child(4) {
+    height: 88%;
+    animation-delay: 0.45s;
+}
+
+.bar:nth-child(5) {
+    height: 44%;
+    animation-delay: 0.6s;
+}
+
+.bar:nth-child(6) {
+    height: 96%;
+    animation-delay: 0.75s;
+}
+
+.bar:nth-child(7) {
+    height: 62%;
+    animation-delay: 0.9s;
+}
+
+.ind-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-top: 4rem;
+    background: var(--g7);
+}
+
+.ind-card {
+    background: var(--white);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    transition:
+        background 0.35s,
+        transform 0.35s;
+}
+
+.ind-card:hover {
+    background: var(--off);
+    transform: translateY(-3px);
+}
+
+.ind-icon {
+    height: 56px;
+    width: 56px;
+    margin: 0 auto 1.25rem;
+    border: 1px solid var(--g7);
+    border-radius: var(--r);
+}
+
+.ind-card:hover .ind-icon {
+    border-color: var(--gold-ll);
+    background: var(--gold-bg);
+}
+
+.ind-name {
+    margin-bottom: 0.3rem;
+    font-size: 1.05rem;
+}
+
+.num-grid {
+    grid-template-columns: repeat(4, 1fr);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.num-val {
+    margin-bottom: 0.5rem;
+    color: var(--white);
+    font-size: 3rem;
+}
+
+#pricing {
+    background: var(--off);
+}
+
+.p-header,
+.t-header {
+    margin-bottom: 5rem;
+    text-align: center;
+}
+
+.centered {
+    justify-content: center;
+}
+
+.centered-copy {
+    margin: 0 auto;
+}
+
+.p-card {
+    position: relative;
+    padding: 3rem 2.5rem;
+    transition:
+        transform 0.4s,
+        box-shadow 0.4s;
+}
+
+.p-card.featured {
+    transform: translateY(-12px);
+    border-color: var(--black);
+    background: var(--black);
+}
+
+.p-card.featured:hover {
+    transform: translateY(-18px);
+}
+
+.feat-badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 4px 4px;
+    background: var(--gold);
+    padding: 0.3rem 1rem;
+    color: var(--black);
+    font-family: var(--fm);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.p-tier {
+    margin-bottom: 1.5rem;
+    color: var(--gold);
+}
+
+.p-amount {
+    margin-bottom: 0.4rem;
+    font-family: var(--fd);
+    font-size: 3.2rem;
+    line-height: 1;
+}
+
+.p-amount sup {
+    margin-top: 0.5rem;
+    color: var(--gold);
+    font-size: 1.3rem;
+    vertical-align: top;
+}
+
+.p-amount.compact {
+    font-size: 2rem;
+    line-height: 1.3;
+}
+
+.p-card.featured .p-amount,
+.p-card.featured .p-feats li,
+.p-card.featured .p-period {
+    color: var(--white);
+}
+
+.p-card.featured .p-period {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.p-div,
+.t-div {
+    height: 1px;
+    background: var(--g7);
+}
+
+.p-div {
+    margin: 1.75rem 0;
+}
+
+.p-card.featured .p-div {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.p-feats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 2.25rem;
+    list-style: none;
+}
+
+.p-feats li {
+    display: flex;
+    gap: 0.75rem;
+    color: var(--g3);
+    font-size: 0.88rem;
+    font-weight: 300;
+}
+
+.p-feats li::before {
+    content: '◆';
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+    color: var(--gold);
+    font-size: 0.42rem;
+}
+
+.p-btn {
+    display: block;
+    border: 1.5px solid var(--g6);
+    border-radius: 2px;
+    padding: 0.85rem;
+    color: var(--black);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.p-card.featured .p-btn {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: var(--black);
+}
+
+.p-btn:hover {
+    border-color: var(--black);
+    background: var(--black);
+    color: var(--white);
+}
+
+.p-card.featured .p-btn:hover {
+    border-color: var(--white);
+    background: var(--white);
+}
+
+#testimonials {
+    background: var(--white);
+}
+
+.t-card {
+    position: relative;
+    background: var(--off);
+    padding: 2.75rem 2.5rem;
+    transition:
+        transform 0.4s,
+        box-shadow 0.4s,
+        border-color 0.4s;
+}
+
+.t-card::before {
+    border: 1.5px solid transparent;
+    transition: border-color 0.4s;
+}
+
+.t-card:hover::before {
+    border-color: var(--gold-ll);
+}
+
+.t-stars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 1.25rem;
+}
+
+.t-star {
+    color: var(--gold);
+    font-size: 0.75rem;
+}
+
+.t-qmark {
+    margin-bottom: 1.25rem;
+    color: var(--gold-ll);
+    font-family: var(--fd);
+    font-size: 3.5rem;
+    line-height: 0.6;
+    opacity: 0.7;
+}
+
+.t-text {
+    margin-bottom: 2rem;
+    color: var(--g2);
+    font-family: var(--fd);
+    font-size: 1.1rem;
+    font-style: italic;
+    line-height: 1.75;
+}
+
+.t-div {
+    margin-bottom: 1.5rem;
+}
+
+.t-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.t-avatar {
+    display: flex;
+    height: 42px;
+    width: 42px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    background: var(--black);
+    color: var(--gold-l);
+    font-family: var(--fm);
+    font-size: 0.65rem;
+}
+
+.t-name {
+    color: var(--black);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+#cta {
+    border-top: 3px solid var(--gold);
+}
+
+.cta-inner {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding: 5.5rem 5rem;
+}
+
+.cta-text p {
+    margin-top: 0.5rem;
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: var(--black);
+    font-weight: 600;
+}
+
+.btn-gold:hover {
+    background: var(--gold-l);
+    transform: translateY(-2px);
+}
+
+footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ft {
+    display: grid;
+    max-width: 1200px;
+    margin: 0 auto;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 4rem;
+    padding: 5rem 5rem 4rem;
+}
+
+.fb-brand p {
+    max-width: 250px;
+    margin-bottom: 2rem;
+    font-size: 0.88rem;
+    line-height: 1.85;
+}
+
+.ft-col h4 {
+    margin-bottom: 1.5rem;
+    color: var(--gold);
+    font-family: var(--fm);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.ft-col ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+}
+
+.ft-col ul a {
+    font-size: 0.88rem;
+    text-decoration: none;
+}
+
+.fb-bottom {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 1.5rem 5rem;
+}
+
+.fb-bottom p,
+.fb-links a {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.76rem;
+    text-decoration: none;
+}
+
+.fb-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+        opacity 0.75s,
+        transform 0.75s;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: none;
+}
+
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes barPulse {
     0%,
     100% {
-        transform: translate3d(0, 0, 0);
+        opacity: 0.5;
     }
     50% {
-        transform: translate3d(0, -12px, 0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hero-right,
+    .hv-card.c2,
+    .hv-card.c3 {
+        display: none;
+    }
+
+    .p-grid,
+    .t-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .p-card.featured {
+        transform: none;
+    }
+
+    .p-card.featured:hover {
+        transform: translateY(-6px);
+    }
+
+    .ind-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ft {
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .f-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .f-card.wide {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+    }
+
+    .num-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .site-nav {
+        padding: 1.2rem 1.5rem;
+    }
+
+    .site-nav.scrolled {
+        padding: 0.8rem 1.5rem;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    #hero {
+        flex-direction: column;
+        padding: 8rem 1.5rem 4rem;
+    }
+
+    .si,
+    .cta-inner,
+    .ft,
+    .fb-bottom {
+        padding-right: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .si {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+    }
+
+    .hiw-grid,
+    .f-grid,
+    .t-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-inner,
+    .fb-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .ft {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .hero-stats,
+    .hiw-header {
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+
+    .num-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-reveal] {
+    .reveal,
+    .marquee-track,
+    .bar,
+    .hv-card,
+    .btn-primary,
+    .btn-gold,
+    .f-card,
+    .p-card,
+    .t-card {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .reveal {
         opacity: 1;
         transform: none;
-        filter: none;
-        transition: none;
-    }
-
-    .hero-device,
-    .hero-stage-core-glow,
-    .hero-stage-halo,
-    .hero-stage-ribbon,
-    .floating-card,
-    .landing-cta,
-    .lift-card,
-    .pricing-card {
-        animation: none;
-        transition: none;
-        transform: none;
-    }
-}
-
-@media (max-width: 1023px) {
-    .hero-backplate,
-    .hero-copy-column::after,
-    .hero-stage-vignette,
-    .hero-stage-ribbon {
-        display: none;
-    }
-
-    .floating-card-left {
-        top: auto;
-        bottom: 18%;
-        left: 2%;
-    }
-
-    .floating-card-right {
-        right: 4%;
-    }
-
-    .floating-card-profile {
-        right: 4%;
-        bottom: 4%;
-    }
-}
-
-@media (max-width: 767px) {
-    .hero-device {
-        transform: none;
-    }
-
-    .hero-copy-glow,
-    .story-right-column::before,
-    .hero-stage-halo {
-        display: none;
-    }
-
-    .story-support-screen {
-        display: none;
-    }
-
-    .floating-card-left,
-    .floating-card-right,
-    .floating-card-profile,
-    .floating-card-note {
-        position: relative;
-        inset: auto;
-        max-width: none;
-        margin-top: 0.75rem;
     }
 }
 </style>
