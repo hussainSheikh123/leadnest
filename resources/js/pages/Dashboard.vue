@@ -1,1884 +1,745 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import {
-    ArrowUpRight,
-    CalendarClock,
-    CheckCheck,
-    ChevronRight,
-    Download,
-    Filter,
-    Inbox,
-    Mail,
-    Phone,
-    Search,
-    ShieldCheck,
-    Sparkles,
-    Target,
-    TrendingUp,
-    Users,
-} from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import UserMenuContent from '@/components/UserMenuContent.vue';
-import { getInitials } from '@/composables/useInitials';
+import { computed } from 'vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { home } from '@/routes';
+import { dashboard, home, logout } from '@/routes';
+import { edit as profileSettings } from '@/routes/profile';
 
-type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Negotiation';
-type LeadSource = 'LinkedIn' | 'Website' | 'Referral' | 'Outbound';
-type LeadPriority = 'High' | 'Medium' | 'Low';
-type SavedViewKey =
-    | 'all'
-    | 'reply'
-    | 'priority'
-    | 'qualified'
-    | 'founder';
+type SummaryCard = {
+    label: string;
+    value: string;
+    suffix: string;
+};
 
-type Lead = {
-    id: number;
-    username: string;
-    fullName: string;
-    email: string;
-    phone: string;
-    age: number;
+type LeadRow = {
+    name: string;
+    source: string;
+    niche: string;
     city: string;
-    company: string;
-    companySize: string;
-    role: string;
-    source: LeadSource;
-    status: LeadStatus;
-    priority: LeadPriority;
-    score: number;
-    owner: string;
-    lastTouch: string;
-    nextStep: string;
-    tags: string[];
-    needsReply: boolean;
+    status: string;
+    score: string;
+    statusTone: 'green' | 'amber';
 };
 
-type LeadMeta = {
-    createdAt: string;
-    ownershipSince: string;
-    nextActionDue: string;
-    reminderAt: string;
-    statusContext: string;
+type SourceRow = {
+    name: string;
+    percentage: string;
 };
 
-type LeadNote = {
-    author: string;
-    time: string;
-    body: string;
-};
-
-type LeadActivityItem = {
-    title: string;
-    detail: string;
-    time: string;
+type FollowUpItem = {
+    name: string;
+    note: string;
 };
 
 const page = usePage();
-const auth = computed(() => page.props.auth);
+const auth = computed(() => page.props.auth as { user: { name: string } });
+const userInitial = computed(
+    () => auth.value.user.name?.trim().charAt(0).toUpperCase() || 'U',
+);
 
-const demoLeads: Lead[] = [
+const navItems = [
+    { label: 'Dashboard', href: dashboard(), active: true },
+    { label: 'Leads', href: '#' },
+    { label: 'Pipeline', href: '#' },
+    { label: 'Analytics', href: '#' },
+    { label: 'Outreach', href: '#' },
+    { label: 'Buyers', href: '#' },
+];
+
+const bottomNavItems = [{ label: 'Settings', href: profileSettings() }];
+
+const summaryCards: SummaryCard[] = [
+    { label: 'Active leads', value: '8', suffix: 'total' },
+    { label: 'In pipeline', value: '3', suffix: 'active' },
+    { label: 'Meetings set', value: '4', suffix: 'this wk' },
+    { label: 'Accuracy rate', value: '85', suffix: '%' },
+];
+
+const prioritisedLeads: LeadRow[] = [
     {
-        id: 1,
-        username: 'amna.r',
-        fullName: 'Amna Rashid',
-        email: 'amna@northflow.io',
-        phone: '+92 300 445 1182',
-        age: 29,
-        city: 'Lahore',
-        company: 'Northflow',
-        companySize: '24 employees',
-        role: 'Growth Manager',
+        name: 'Amna Rashid',
         source: 'LinkedIn',
-        status: 'Qualified',
-        priority: 'High',
-        score: 92,
-        owner: 'Areeb Khan',
-        lastTouch: '2h ago',
-        nextStep: 'Book qualification call',
-        tags: ['SaaS', 'Inbound', 'High intent'],
-        needsReply: true,
-    },
-    {
-        id: 2,
-        username: 'haris.q',
-        fullName: 'Haris Qureshi',
-        email: 'haris@novastack.ai',
-        phone: '+92 321 553 9144',
-        age: 33,
-        city: 'Karachi',
-        company: 'Novastack',
-        companySize: '46 employees',
-        role: 'Revenue Lead',
-        source: 'Website',
-        status: 'Contacted',
-        priority: 'Medium',
-        score: 81,
-        owner: 'Mehak Ali',
-        lastTouch: 'Yesterday',
-        nextStep: 'Send pricing overview',
-        tags: ['AI', 'Demo requested'],
-        needsReply: false,
-    },
-    {
-        id: 3,
-        username: 'maria.h',
-        fullName: 'Maria Hassan',
-        email: 'maria@brightworks.co',
-        phone: '+92 333 195 0028',
-        age: 27,
-        city: 'Islamabad',
-        company: 'BrightWorks',
-        companySize: '18 employees',
-        role: 'Partnerships Manager',
-        source: 'Referral',
-        status: 'Qualified',
-        priority: 'High',
-        score: 89,
-        owner: 'Areeb Khan',
-        lastTouch: '30m ago',
-        nextStep: 'Share campaign case study',
-        tags: ['Agency', 'Referral'],
-        needsReply: true,
-    },
-    {
-        id: 4,
-        username: 'fahad.a',
-        fullName: 'Fahad Ali',
-        email: 'fahad@marketpilot.io',
-        phone: '+92 300 889 3311',
-        age: 31,
+        niche: 'Commercial',
         city: 'Dubai',
-        company: 'MarketPilot',
-        companySize: '62 employees',
-        role: 'Sales Director',
-        source: 'Outbound',
-        status: 'New',
-        priority: 'Medium',
-        score: 74,
-        owner: 'Hoor Fatima',
-        lastTouch: 'Just now',
-        nextStep: 'Verify decision-maker fit',
-        tags: ['Outbound', 'Cold lead'],
-        needsReply: false,
+        status: 'Live',
+        score: '92%',
+        statusTone: 'green',
     },
     {
-        id: 5,
-        username: 'sara.k',
-        fullName: 'Sara Khan',
-        email: 'sara@peaklaunch.com',
-        phone: '+92 302 103 7742',
-        age: 30,
-        city: 'Lahore',
-        company: 'PeakLaunch',
-        companySize: '33 employees',
-        role: 'Operations Manager',
-        source: 'LinkedIn',
-        status: 'Negotiation',
-        priority: 'High',
-        score: 94,
-        owner: 'Mehak Ali',
-        lastTouch: '4h ago',
-        nextStep: 'Finalize proposal follow-up',
-        tags: ['Proposal sent', 'Warm account'],
-        needsReply: true,
-    },
-    {
-        id: 6,
-        username: 'talha.m',
-        fullName: 'Talha Mahmood',
-        email: 'talha@signalgrid.io',
-        phone: '+92 311 665 9012',
-        age: 35,
-        city: 'Karachi',
-        company: 'SignalGrid',
-        companySize: '11 employees',
-        role: 'Founder',
+        name: 'Maria Dawson',
         source: 'Website',
-        status: 'Qualified',
-        priority: 'High',
-        score: 95,
-        owner: 'Hoor Fatima',
-        lastTouch: '1h ago',
-        nextStep: 'Schedule founder intro',
-        tags: ['Founder-led', 'Hot lead'],
-        needsReply: true,
+        niche: 'Residential',
+        city: 'Sharjah',
+        status: 'Live',
+        score: '81%',
+        statusTone: 'green',
     },
     {
-        id: 7,
-        username: 'zain.s',
-        fullName: 'Zain Shah',
-        email: 'zain@adstreamhq.com',
-        phone: '+92 304 801 1123',
-        age: 28,
-        city: 'Islamabad',
-        company: 'AdStream',
-        companySize: '29 employees',
-        role: 'Performance Lead',
-        source: 'Referral',
-        status: 'Contacted',
-        priority: 'Low',
-        score: 72,
-        owner: 'Areeb Khan',
-        lastTouch: '3d ago',
-        nextStep: 'Re-engage with benchmark email',
-        tags: ['Paid ads', 'Needs nurture'],
-        needsReply: false,
-    },
-    {
-        id: 8,
-        username: 'hira.n',
-        fullName: 'Hira Nadeem',
-        email: 'hira@closelooplabs.ai',
-        phone: '+92 345 111 9821',
-        age: 32,
-        city: 'Lahore',
-        company: 'CloseLoop Labs',
-        companySize: '54 employees',
-        role: 'Head of Demand Gen',
+        name: 'Mian Osman',
         source: 'Outbound',
-        status: 'Qualified',
-        priority: 'Medium',
-        score: 86,
-        owner: 'Mehak Ali',
-        lastTouch: '5h ago',
-        nextStep: 'Prepare custom lead list sample',
-        tags: ['Demand gen', 'SQL'],
-        needsReply: false,
+        niche: 'Industrial',
+        city: 'Abu Dhabi',
+        status: 'Pending',
+        score: '89%',
+        statusTone: 'amber',
+    },
+    {
+        name: 'Raheela Ch.',
+        source: 'LinkedIn',
+        niche: 'High-rise',
+        city: 'Dubai',
+        status: 'Live',
+        score: '74%',
+        statusTone: 'green',
+    },
+    {
+        name: 'Sara Khan',
+        source: 'Referral',
+        niche: 'Commercial',
+        city: 'Dubai',
+        status: 'Live',
+        score: '94%',
+        statusTone: 'green',
     },
 ];
 
-const leads = computed(() => {
-    const pageLeads = (page.props as { leads?: Lead[] }).leads;
-
-    return Array.isArray(pageLeads) ? pageLeads : demoLeads;
-});
-
-const savedViews = [
-    {
-        key: 'all' as SavedViewKey,
-        label: 'All leads',
-        description: 'Full working queue',
-    },
-    {
-        key: 'reply' as SavedViewKey,
-        label: 'Reply due',
-        description: 'Needs follow-up today',
-    },
-    {
-        key: 'priority' as SavedViewKey,
-        label: 'High priority',
-        description: 'Hot and urgent accounts',
-    },
-    {
-        key: 'qualified' as SavedViewKey,
-        label: 'Qualified + negotiation',
-        description: 'Late-stage review',
-    },
-    {
-        key: 'founder' as SavedViewKey,
-        label: 'Founder-led',
-        description: 'Executive attention accounts',
-    },
-] as const;
-
-const leadMetaById: Record<number, LeadMeta> = {
-    1: {
-        createdAt: 'Today, 8:20 AM',
-        ownershipSince: 'Owned by Areeb for 3h',
-        nextActionDue: 'Today, 4:00 PM',
-        reminderAt: 'Follow up by 4:00 PM',
-        statusContext: 'Qualified after inbound request and pricing interest.',
-    },
-    2: {
-        createdAt: 'Yesterday, 2:15 PM',
-        ownershipSince: 'Owned by Mehak for 1 day',
-        nextActionDue: 'Tomorrow, 11:30 AM',
-        reminderAt: 'Review tomorrow',
-        statusContext: 'Contacted and waiting for pricing summary review.',
-    },
-    3: {
-        createdAt: 'Today, 9:10 AM',
-        ownershipSince: 'Owned by Areeb for 2h',
-        nextActionDue: 'Today, 5:30 PM',
-        reminderAt: 'Send case study today',
-        statusContext: 'Referral lead with strong agency fit and quick response window.',
-    },
-    4: {
-        createdAt: 'Today, 11:05 AM',
-        ownershipSince: 'Owned by Hoor for 20m',
-        nextActionDue: 'Today, 6:00 PM',
-        reminderAt: 'Verify fit today',
-        statusContext: 'Fresh outbound record pending decision-maker validation.',
-    },
-    5: {
-        createdAt: 'Yesterday, 4:45 PM',
-        ownershipSince: 'Owned by Mehak for 18h',
-        nextActionDue: 'Today, 3:30 PM',
-        reminderAt: 'Proposal follow-up at 3:30 PM',
-        statusContext: 'Negotiation stage after proposal delivery and warm reply.',
-    },
-    6: {
-        createdAt: 'Today, 7:50 AM',
-        ownershipSince: 'Owned by Hoor for 4h',
-        nextActionDue: 'Today, 2:00 PM',
-        reminderAt: 'Founder intro at 2:00 PM',
-        statusContext: 'Founder-led account with high urgency and clear buying signal.',
-    },
-    7: {
-        createdAt: '3 days ago, 1:10 PM',
-        ownershipSince: 'Owned by Areeb for 3 days',
-        nextActionDue: 'Tomorrow, 9:00 AM',
-        reminderAt: 'Nurture tomorrow',
-        statusContext: 'Contacted lead that needs re-engagement before it cools further.',
-    },
-    8: {
-        createdAt: 'Today, 8:55 AM',
-        ownershipSince: 'Owned by Mehak for 5h',
-        nextActionDue: 'Tomorrow, 10:00 AM',
-        reminderAt: 'Prepare sample by tomorrow',
-        statusContext: 'Qualified outbound lead waiting on tailored list sample.',
-    },
-};
-
-const leadNotesById: Record<number, LeadNote[]> = {
-    1: [
-        {
-            author: 'Areeb Khan',
-            time: 'Today, 10:15 AM',
-            body: 'Asked for a qualification call and mentioned the team is comparing two vendors this week.',
-        },
-        {
-            author: 'Ops',
-            time: 'Today, 8:45 AM',
-            body: 'Inbound form included monthly lead target and team size, so fit score moved up quickly.',
-        },
-    ],
-    2: [
-        {
-            author: 'Mehak Ali',
-            time: 'Yesterday, 5:05 PM',
-            body: 'Requested a concise pricing overview rather than a full deck.',
-        },
-    ],
-    3: [
-        {
-            author: 'Areeb Khan',
-            time: 'Today, 11:00 AM',
-            body: 'Referral source says they want campaign examples before routing internally.',
-        },
-    ],
-    4: [
-        {
-            author: 'Hoor Fatima',
-            time: 'Today, 11:20 AM',
-            body: 'Need to confirm whether Fahad owns budget or is only evaluating options.',
-        },
-    ],
-    5: [
-        {
-            author: 'Mehak Ali',
-            time: 'Today, 9:30 AM',
-            body: 'Proposal landed well. Follow-up should focus on implementation scope and timing.',
-        },
-        {
-            author: 'Finance',
-            time: 'Yesterday, 6:15 PM',
-            body: 'Commercial terms are ready if they ask for annual pricing detail.',
-        },
-    ],
-    6: [
-        {
-            author: 'Hoor Fatima',
-            time: 'Today, 10:10 AM',
-            body: 'Founder asked for a direct intro and a quick list sample before the call.',
-        },
-    ],
-    7: [
-        {
-            author: 'Areeb Khan',
-            time: 'Yesterday, 4:00 PM',
-            body: 'No reply to last benchmark email. Queue for a lighter re-engagement note tomorrow morning.',
-        },
-    ],
-    8: [
-        {
-            author: 'Mehak Ali',
-            time: 'Today, 12:10 PM',
-            body: 'Strong fit, but they want the sample tailored to demand gen leadership roles first.',
-        },
-    ],
-};
-
-const leadActivityById: Record<number, LeadActivityItem[]> = {
-    1: [
-        {
-            title: 'Qualification call requested',
-            detail: 'Amna asked for times this afternoon after reviewing the overview.',
-            time: '2h ago',
-        },
-        {
-            title: 'Owner assigned',
-            detail: 'Areeb took ownership after the inbound form was scored high intent.',
-            time: '3h ago',
-        },
-    ],
-    2: [
-        {
-            title: 'Pricing note added',
-            detail: 'Requested a short summary instead of a full proposal.',
-            time: 'Yesterday',
-        },
-    ],
-    3: [
-        {
-            title: 'Referral confirmed',
-            detail: 'Source validated agency fit and introduced the buyer internally.',
-            time: '30m ago',
-        },
-        {
-            title: 'Case study queued',
-            detail: 'Campaign example is the agreed next step.',
-            time: '1h ago',
-        },
-    ],
-    4: [
-        {
-            title: 'New outbound record added',
-            detail: 'Lead entered queue from outbound list and is pending fit verification.',
-            time: 'Just now',
-        },
-    ],
-    5: [
-        {
-            title: 'Proposal follow-up scheduled',
-            detail: 'Reminder set for 3:30 PM with pricing and rollout notes ready.',
-            time: '4h ago',
-        },
-        {
-            title: 'Proposal delivered',
-            detail: 'PeakLaunch confirmed receipt and requested timing clarity.',
-            time: 'Yesterday',
-        },
-    ],
-    6: [
-        {
-            title: 'Founder intro pending',
-            detail: 'Hoor is lining up a short call and sample handoff for this afternoon.',
-            time: '1h ago',
-        },
-    ],
-    7: [
-        {
-            title: 'Re-engagement queued',
-            detail: 'Benchmark email underperformed, so the next touch is being reframed.',
-            time: '3d ago',
-        },
-    ],
-    8: [
-        {
-            title: 'Sample request added',
-            detail: 'Custom list sample requested for demand gen leadership targeting.',
-            time: '5h ago',
-        },
-    ],
-};
-
-const searchTerm = ref('');
-const selectedView = ref<SavedViewKey>('all');
-const selectedSource = ref<'All' | LeadSource>('All');
-const selectedStatus = ref<'All' | LeadStatus>('All');
-const selectedLeadId = ref(0);
-
-watch(
-    leads,
-    (records) => {
-        if (records.length === 0) {
-            selectedLeadId.value = 0;
-            return;
-        }
-
-        if (!records.some((lead) => lead.id === selectedLeadId.value)) {
-            selectedLeadId.value = records[0].id;
-        }
-    },
-    { immediate: true },
-);
-
-const sourceOptions: Array<'All' | LeadSource> = [
-    'All',
-    'LinkedIn',
-    'Website',
-    'Referral',
-    'Outbound',
+const sourceRows: SourceRow[] = [
+    { name: 'LinkedIn', percentage: '66%' },
+    { name: 'Website', percentage: '80%' },
+    { name: 'Defence', percentage: '82%' },
+    { name: 'Outbound', percentage: '60%' },
 ];
 
-const statusOptions: Array<'All' | LeadStatus> = [
-    'All',
-    'Qualified',
-    'Contacted',
-    'Negotiation',
-    'New',
+const followUpQueue: FollowUpItem[] = [
+    { name: 'Amna Rashid', note: 'Message today 4:00 PM' },
+    { name: 'Maria Dawson', note: 'Send today 5:30 PM' },
+    { name: 'Sara Khan', note: 'Follow-up 3 hrs' },
 ];
-
-const matchesSavedView = (lead: Lead): boolean => {
-    switch (selectedView.value) {
-        case 'reply':
-            return lead.needsReply;
-        case 'priority':
-            return lead.priority === 'High';
-        case 'qualified':
-            return (
-                lead.status === 'Qualified' || lead.status === 'Negotiation'
-            );
-        case 'founder':
-            return (
-                lead.role === 'Founder' || lead.tags.includes('Founder-led')
-            );
-        case 'all':
-        default:
-            return true;
-    }
-};
-
-const filteredLeads = computed(() => {
-    const term = searchTerm.value.trim().toLowerCase();
-
-    return leads.value.filter((lead) => {
-        const matchesView = matchesSavedView(lead);
-        const matchesTerm =
-            term.length === 0 ||
-            [
-                lead.username,
-                lead.fullName,
-                lead.email,
-                lead.phone,
-                lead.company,
-                lead.role,
-                lead.city,
-                lead.owner,
-            ]
-                .join(' ')
-                .toLowerCase()
-                .includes(term);
-
-        const matchesSource =
-            selectedSource.value === 'All' ||
-            lead.source === selectedSource.value;
-
-        const matchesStatus =
-            selectedStatus.value === 'All' ||
-            lead.status === selectedStatus.value;
-
-        return matchesView && matchesTerm && matchesSource && matchesStatus;
-    });
-});
-
-const savedViewCounts = computed<Record<SavedViewKey, number>>(() => ({
-    all: leads.value.length,
-    reply: leads.value.filter((lead) => lead.needsReply).length,
-    priority: leads.value.filter((lead) => lead.priority === 'High').length,
-    qualified: leads.value.filter(
-        (lead) =>
-            lead.status === 'Qualified' || lead.status === 'Negotiation',
-    ).length,
-    founder: leads.value.filter(
-        (lead) =>
-            lead.role === 'Founder' || lead.tags.includes('Founder-led'),
-    ).length,
-}));
-
-const selectedLead = computed(
-    () =>
-        filteredLeads.value.find((lead) => lead.id === selectedLeadId.value) ||
-        filteredLeads.value[0] ||
-        null,
-);
-
-const selectedLeadMeta = computed(() =>
-    selectedLead.value ? leadMetaById[selectedLead.value.id] : null,
-);
-
-const selectedLeadNotes = computed(() =>
-    selectedLead.value ? leadNotesById[selectedLead.value.id] ?? [] : [],
-);
-
-const selectedLeadActivity = computed(() =>
-    selectedLead.value ? leadActivityById[selectedLead.value.id] ?? [] : [],
-);
-
-const reminderLeads = computed(() =>
-    leads.value
-        .filter((lead) => lead.needsReply)
-        .map((lead) => ({
-            id: lead.id,
-            fullName: lead.fullName,
-            owner: lead.owner,
-            reminderAt: leadMetaById[lead.id].reminderAt,
-            nextStep: lead.nextStep,
-        })),
-);
-
-const selectedLeadActionCards = computed(() => {
-    if (!selectedLead.value || !selectedLeadMeta.value) {
-        return [];
-    }
-
-    return [
-        {
-            title: selectedLead.value.nextStep,
-            detail: `${selectedLeadMeta.value.nextActionDue} | ${selectedLead.value.owner}`,
-            icon: ArrowUpRight,
-        },
-        {
-            title: `Reply to ${selectedLead.value.fullName.split(' ')[0]}`,
-            detail: `Last touch ${selectedLead.value.lastTouch} | ${selectedLeadMeta.value.reminderAt}`,
-            icon: Mail,
-        },
-        {
-            title: `Route ${selectedLead.value.company} to sales`,
-            detail: `${selectedLead.value.source} source | ${selectedLead.value.priority} priority`,
-            icon: CheckCheck,
-        },
-    ];
-});
-
-const totalLeads = computed(() => leads.value.length);
-const hotLeads = computed(
-    () => leads.value.filter((lead) => lead.score >= 90).length,
-);
-const responseDue = computed(
-    () => leads.value.filter((lead) => lead.needsReply).length,
-);
-const averageScore = computed(() => {
-    if (leads.value.length === 0) {
-        return 0;
-    }
-
-    return Math.round(
-        leads.value.reduce((total, lead) => total + lead.score, 0) /
-            leads.value.length,
-    );
-});
-
-const hasNoLeads = computed(() => totalLeads.value === 0);
-
-const summaryCards = computed(() => [
-    {
-        title: 'Active leads',
-        value: totalLeads.value.toString(),
-        note: 'Current frontend preview dataset',
-        icon: Users,
-    },
-    {
-        title: 'Hot leads',
-        value: hotLeads.value.toString(),
-        note: 'Score above 90 and close to conversion',
-        icon: Target,
-    },
-    {
-        title: 'Response due',
-        value: responseDue.value.toString(),
-        note: 'Leads needing quick follow-up today',
-        icon: CalendarClock,
-    },
-    {
-        title: 'Average fit',
-        value: `${averageScore.value}%`,
-        note: 'Average score across all uploaded records',
-        icon: Sparkles,
-    },
-]);
-
-const pipelineStages = computed(() => {
-    const base = [
-        { key: 'New' as LeadStatus, title: 'New', caption: 'Fresh records' },
-        {
-            key: 'Contacted' as LeadStatus,
-            title: 'Contacted',
-            caption: 'Initial outreach sent',
-        },
-        {
-            key: 'Qualified' as LeadStatus,
-            title: 'Qualified',
-            caption: 'Good fit and ready to route',
-        },
-        {
-            key: 'Negotiation' as LeadStatus,
-            title: 'Negotiation',
-            caption: 'Proposal or pricing discussion',
-        },
-    ];
-
-    return base.map((stage) => ({
-        ...stage,
-        count: leads.value.filter((lead) => lead.status === stage.key).length,
-    }));
-});
-
-const sourcePerformance = computed(() => {
-    const grouped = sourceOptions
-        .filter((source): source is LeadSource => source !== 'All')
-        .map((source) => {
-            const sourceLeads = leads.value.filter(
-                (lead) => lead.source === source,
-            );
-            const qualified = sourceLeads.filter(
-                (lead) =>
-                    lead.status === 'Qualified' ||
-                    lead.status === 'Negotiation',
-            ).length;
-
-            return {
-                source,
-                count: sourceLeads.length,
-                score:
-                    sourceLeads.length > 0
-                        ? Math.round(
-                              sourceLeads.reduce(
-                                  (total, lead) => total + lead.score,
-                                  0,
-                              ) / sourceLeads.length,
-                          )
-                        : 0,
-                conversion:
-                    sourceLeads.length > 0
-                        ? Math.round((qualified / sourceLeads.length) * 100)
-                        : 0,
-            };
-        });
-
-    const highestCount = Math.max(...grouped.map((item) => item.count), 1);
-
-    return grouped.map((item) => ({
-        ...item,
-        width: `${Math.max((item.count / highestCount) * 100, 18)}%`,
-    }));
-});
-
-const selectedLeadActions = computed(() => {
-    if (!selectedLead.value) {
-        return [];
-    }
-
-    return [
-        {
-            title: selectedLead.value.nextStep,
-            detail: `Owner: ${selectedLead.value.owner}`,
-            icon: ArrowUpRight,
-        },
-        {
-            title: `Reply to ${selectedLead.value.fullName.split(' ')[0]}`,
-            detail: `Last touch ${selectedLead.value.lastTouch}`,
-            icon: Mail,
-        },
-        {
-            title: `Route ${selectedLead.value.company} to sales`,
-            detail: `${selectedLead.value.source} source • ${selectedLead.value.priority} priority`,
-            icon: CheckCheck,
-        },
-    ];
-});
-
-const statusClasses: Record<LeadStatus, string> = {
-    New: 'border border-zinc-200 bg-white text-zinc-700',
-    Contacted: 'bg-zinc-200 text-zinc-800',
-    Qualified: 'bg-zinc-950 text-white',
-    Negotiation: 'bg-zinc-900 text-white',
-};
-
-const priorityClasses: Record<LeadPriority, string> = {
-    High: 'bg-zinc-950 text-white',
-    Medium: 'bg-zinc-200 text-zinc-800',
-    Low: 'border border-zinc-200 bg-white text-zinc-700',
-};
 </script>
 
 <template>
     <PublicLayout>
-        <Head title="Dashboard" />
+        <Head title="Dashboard">
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link
+                rel="preconnect"
+                href="https://fonts.gstatic.com"
+                crossorigin="anonymous"
+            />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+                rel="stylesheet"
+            />
+        </Head>
 
-        <div class="min-h-screen bg-[#f7f5ef] text-zinc-950">
-            <header
-                class="sticky top-0 z-40 border-b border-zinc-200/80 bg-[#fcfbf8]/90 backdrop-blur-xl"
-            >
-                <div
-                    class="mx-auto flex max-w-[1480px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
-                >
-                    <div class="flex items-center gap-3">
-                        <Link
-                            :href="home()"
-                            class="inline-flex items-center gap-3"
-                        >
-                            <div
-                                class="flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(24,24,27,0.16)]"
-                            >
-                                LN
-                            </div>
-                            <div>
-                                <div
-                                    class="text-base font-semibold tracking-tight text-zinc-950"
-                                >
-                                    LeadNest
-                                </div>
-                                <div
-                                    class="text-[11px] tracking-[0.24em] text-zinc-500 uppercase"
-                                >
-                                    Lead workspace
-                                </div>
-                            </div>
-                        </Link>
-                        <div
-                            class="hidden rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium tracking-[0.18em] text-zinc-600 uppercase sm:inline-flex"
-                        >
-                            Dashboard
-                        </div>
+        <div class="dashboard-shell">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <Link :href="home()" class="brand-lockup">
+                        <div class="brand-mark">LN</div>
+                        <span class="brand-text">Lead<span>Nest</span></span>
+                    </Link>
+
+                    <div class="crumb">
+                        <span>/</span>
+                        <span>Dashboard</span>
                     </div>
+                </div>
 
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <button
-                            type="button"
-                            class="hidden cursor-pointer items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950 md:inline-flex"
-                        >
-                            <Download class="h-4 w-4" />
-                            Export preview
-                        </button>
+                <div class="header-right">
+                    <button type="button" class="generate-button">
+                        + Generate Leads
+                    </button>
 
-                        <div class="hidden text-right sm:block">
-                            <div class="text-sm font-medium text-zinc-950">
-                                {{ auth.user.name }}
-                            </div>
-                            <div class="text-xs text-zinc-500">
-                                Lead operations view
-                            </div>
-                        </div>
+                    <div class="user-name">{{ auth.user.name }}</div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger :as-child="true">
-                                <button
-                                    type="button"
-                                    class="relative flex cursor-pointer items-center gap-3 rounded-full border border-zinc-200 bg-white p-1 pr-3 pl-1 transition hover:border-zinc-950 focus:outline-none"
-                                >
-                                    <Avatar
-                                        class="size-9 overflow-hidden rounded-full"
-                                    >
-                                        <AvatarImage
-                                            v-if="auth.user.avatar"
-                                            :src="auth.user.avatar"
-                                            :alt="auth.user.name"
-                                        />
-                                        <AvatarFallback
-                                            class="bg-zinc-950 font-semibold text-white"
-                                        >
-                                            {{ getInitials(auth.user?.name) }}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <span
-                                        class="hidden text-sm font-medium text-zinc-900 sm:inline"
-                                    >
-                                        Account
-                                    </span>
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" class="w-56">
-                                <UserMenuContent :user="auth.user" />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                    <div class="avatar-pill">{{ userInitial }}</div>
+
+                    <Link :href="logout()" as="button" class="logout-link">
+                        Logout
+                    </Link>
                 </div>
             </header>
 
-            <main
-                class="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8"
-            >
-                <section
-                    v-if="hasNoLeads"
-                    class="rounded-[34px] border border-zinc-200 bg-white px-6 py-12 text-center shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:px-8"
-                >
-                    <div
-                        class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-200 bg-[#faf9f6] text-zinc-700"
-                    >
-                        <Inbox class="h-6 w-6" />
-                    </div>
-                    <h2
-                        class="mt-5 text-2xl font-semibold tracking-tight text-zinc-950"
-                    >
-                        No leads yet.
-                    </h2>
-                    <p
-                        class="mx-auto mt-2 max-w-xl text-sm leading-7 text-zinc-600"
-                    >
-                        They will appear here once assigned.
-                    </p>
-                </section>
+            <div class="dashboard-layout">
+                <aside class="sidebar">
+                    <div class="sidebar-inner">
+                        <nav class="sidebar-nav">
+                            <Link
+                                v-for="item in navItems"
+                                :key="item.label"
+                                :href="item.href"
+                                class="sidebar-link"
+                                :class="{ active: item.active }"
+                            >
+                                <span class="sidebar-bullet" />
+                                <span>{{ item.label }}</span>
+                            </Link>
+                        </nav>
 
-                <section
-                    class="overflow-hidden rounded-[34px] border border-zinc-200 bg-white shadow-[0_24px_70px_rgba(24,24,27,0.06)]"
-                >
-                    <div class="grid gap-0 xl:grid-cols-[1.12fr_0.88fr]">
-                        <div class="px-6 py-7 sm:px-8 lg:px-10 lg:py-9">
-                            <div
-                                class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-[#f6f4ef] px-3 py-1.5 text-xs font-medium tracking-[0.18em] text-zinc-600 uppercase"
+                        <nav class="sidebar-nav sidebar-bottom-nav">
+                            <Link
+                                v-for="item in bottomNavItems"
+                                :key="item.label"
+                                :href="item.href"
+                                class="sidebar-link"
                             >
-                                Lead command center
-                            </div>
-                            <h1
-                                class="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl"
-                            >
+                                <span class="sidebar-bullet" />
+                                <span>{{ item.label }}</span>
+                            </Link>
+                        </nav>
+                    </div>
+                </aside>
+
+                <main class="dashboard-main">
+                    <div class="dashboard-content">
+                        <section class="hero-copy">
+                            <h1>Lead Command Centre</h1>
+                            <p>
                                 A cleaner leads dashboard built for fast
                                 follow-up and better conversion focus.
-                            </h1>
-                            <p
-                                class="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg"
-                            >
-                                This frontend preview is structured like a
-                                modern lead-ops workspace: performance at the
-                                top, prioritized leads in the middle, and full
-                                record context on the right.
                             </p>
-                            <div class="mt-5 flex flex-wrap gap-2">
-                                <span
-                                    class="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700"
-                                >
-                                    CSV-ready structure
-                                </span>
-                                <span
-                                    class="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700"
-                                >
-                                    Mobile responsive
-                                </span>
-                                <span
-                                    class="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700"
-                                >
-                                    Lead generation focus
-                                </span>
-                            </div>
+                        </section>
 
-                            <div
-                                class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+                        <section class="stats-grid">
+                            <article
+                                v-for="card in summaryCards"
+                                :key="card.label"
+                                class="stat-card"
                             >
-                                <article
-                                    v-for="card in summaryCards"
-                                    :key="card.title"
-                                    class="rounded-[26px] border border-zinc-200 bg-[#faf9f6] p-5"
-                                >
+                                <div class="stat-label">{{ card.label }}</div>
+                                <div class="stat-value">
+                                    {{ card.value }}
+                                    <span>{{ card.suffix }}</span>
+                                </div>
+                            </article>
+                        </section>
+
+                        <section class="content-grid">
+                            <article class="panel panel-large">
+                                <h2>Prioritised lead records</h2>
+
+                                <div class="lead-list">
                                     <div
-                                        class="flex items-center justify-between gap-3"
+                                        v-for="lead in prioritisedLeads"
+                                        :key="lead.name"
+                                        class="lead-row"
                                     >
-                                        <div
-                                            class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                        >
-                                            {{ card.title }}
-                                        </div>
-                                        <div
-                                            class="flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200 bg-white text-zinc-950"
-                                        >
-                                            <component
-                                                :is="card.icon"
-                                                class="h-4 w-4"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="mt-4 text-3xl font-semibold tracking-tight text-zinc-950"
-                                    >
-                                        {{ card.value }}
-                                    </div>
-                                    <p
-                                        class="mt-2 text-sm leading-6 text-zinc-600"
-                                    >
-                                        {{ card.note }}
-                                    </p>
-                                </article>
-                            </div>
-                        </div>
-
-                        <div
-                            class="border-t border-zinc-200 bg-[#fbfaf7] xl:border-t-0 xl:border-l"
-                        >
-                            <div
-                                class="h-full px-6 py-7 sm:px-8 lg:px-10 lg:py-9"
-                            >
-                                <div
-                                    class="flex items-center justify-between gap-3"
-                                >
-                                    <div>
-                                        <p
-                                            class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                        >
-                                            Source performance
-                                        </p>
-                                        <h2
-                                            class="mt-2 text-2xl font-semibold tracking-tight text-zinc-950"
-                                        >
-                                            Where the strongest leads are coming
-                                            from.
-                                        </h2>
-                                    </div>
-                                    <div
-                                        class="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700"
-                                    >
-                                        This week
-                                    </div>
-                                </div>
-
-                                <div class="mt-6 space-y-4">
-                                    <article
-                                        v-for="item in sourcePerformance"
-                                        :key="item.source"
-                                        class="rounded-[24px] border border-zinc-200 bg-white p-4"
-                                    >
-                                        <div
-                                            class="flex items-start justify-between gap-4"
-                                        >
-                                            <div>
-                                                <div
-                                                    class="text-sm font-semibold text-zinc-950"
-                                                >
-                                                    {{ item.source }}
-                                                </div>
-                                                <div
-                                                    class="mt-1 text-sm text-zinc-500"
-                                                >
-                                                    {{ item.count }} leads •
-                                                    {{ item.score }}% avg fit
-                                                </div>
+                                        <div class="lead-copy">
+                                            <div class="lead-name">
+                                                {{ lead.name }}
                                             </div>
-                                            <div class="text-right">
-                                                <div
-                                                    class="text-sm font-semibold text-zinc-950"
-                                                >
-                                                    {{ item.conversion }}%
-                                                </div>
-                                                <div
-                                                    class="text-xs text-zinc-500"
-                                                >
-                                                    converted to high intent
-                                                </div>
+                                            <div class="lead-meta">
+                                                {{ lead.source }} -
+                                                {{ lead.niche }} -
+                                                {{ lead.city }}
                                             </div>
                                         </div>
-                                        <div
-                                            class="mt-4 h-2.5 rounded-full bg-zinc-100"
-                                        >
-                                            <div
-                                                class="h-2.5 rounded-full bg-zinc-950"
-                                                :style="{ width: item.width }"
-                                            />
-                                        </div>
-                                    </article>
-                                </div>
 
-                                <div
-                                    class="mt-6 rounded-[26px] border border-zinc-200 bg-zinc-950 p-5 text-white"
-                                >
-                                    <div
-                                        class="flex items-center gap-2 text-sm text-zinc-300"
-                                    >
-                                        <TrendingUp class="h-4 w-4" />
-                                        Follow-up reminders
-                                    </div>
-                                    <div class="mt-4 space-y-3">
-                                        <article
-                                            v-for="item in reminderLeads"
-                                            :key="item.id"
-                                            class="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3"
-                                        >
-                                            <div
-                                                class="flex items-start justify-between gap-3"
-                                            >
-                                                <div>
-                                                    <div
-                                                        class="text-sm font-semibold text-white"
-                                                    >
-                                                        {{ item.fullName }}
-                                                    </div>
-                                                    <div
-                                                        class="mt-1 text-sm text-zinc-300"
-                                                    >
-                                                        {{ item.nextStep }}
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    class="text-right text-xs font-medium text-zinc-400"
-                                                >
-                                                    {{ item.reminderAt }}
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="mt-2 text-xs text-zinc-400"
-                                            >
-                                                Owner {{ item.owner }}
-                                            </div>
-                                        </article>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section
-                    class="rounded-[34px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:p-6"
-                >
-                    <div
-                        class="flex flex-col gap-4 border-b border-zinc-200 pb-5 lg:flex-row lg:items-end lg:justify-between"
-                    >
-                        <div>
-                            <p
-                                class="text-xs font-semibold tracking-[0.22em] text-zinc-500 uppercase"
-                            >
-                                Pipeline view
-                            </p>
-                            <h2
-                                class="mt-3 text-2xl font-semibold tracking-tight text-zinc-950"
-                            >
-                                Visual lead stages with quick volume checks.
-                            </h2>
-                        </div>
-
-                        <div
-                            class="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-[#f6f4ef] px-3 py-2 text-sm text-zinc-600"
-                        >
-                            <ShieldCheck class="h-4 w-4 text-zinc-950" />
-                            Built for uploaded CSV records
-                        </div>
-                    </div>
-
-                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                        <article
-                            v-for="stage in pipelineStages"
-                            :key="stage.key"
-                            class="rounded-[26px] border border-zinc-200 bg-[#faf9f6] p-5"
-                        >
-                            <div
-                                class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                            >
-                                {{ stage.title }}
-                            </div>
-                            <div
-                                class="mt-3 flex items-end justify-between gap-3"
-                            >
-                                <div
-                                    class="text-4xl font-semibold tracking-tight text-zinc-950"
-                                >
-                                    {{ stage.count }}
-                                </div>
-                                <div
-                                    class="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600"
-                                >
-                                    {{
-                                        totalLeads === 0
-                                            ? 0
-                                            : Math.round(
-                                                  (stage.count / totalLeads) *
-                                                      100,
-                                              )
-                                    }}%
-                                </div>
-                            </div>
-                            <p class="mt-3 text-sm leading-6 text-zinc-600">
-                                {{ stage.caption }}
-                            </p>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="grid gap-6 xl:grid-cols-[1.22fr_0.78fr]">
-                    <div
-                        class="rounded-[34px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:p-6"
-                    >
-                        <div
-                            class="flex flex-col gap-4 border-b border-zinc-200 pb-5"
-                        >
-                            <div
-                                class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
-                            >
-                                <div>
-                                    <p
-                                        class="text-xs font-semibold tracking-[0.22em] text-zinc-500 uppercase"
-                                    >
-                                        Leads inbox
-                                    </p>
-                                    <h2
-                                        class="mt-3 text-2xl font-semibold tracking-tight text-zinc-950"
-                                    >
-                                        Prioritized lead records with quick
-                                        context.
-                                    </h2>
-                                </div>
-                                <div
-                                    class="rounded-full border border-zinc-200 bg-[#f6f4ef] px-3 py-2 text-sm text-zinc-600"
-                                >
-                                    {{ filteredLeads.length }} visible records
-                                </div>
-                            </div>
-
-                            <div
-                                class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"
-                            >
-                                <div class="relative w-full xl:max-w-md">
-                                    <Search
-                                        class="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-zinc-400"
-                                    />
-                                    <input
-                                        v-model="searchTerm"
-                                        type="text"
-                                        placeholder="Search by username, full name, email, company..."
-                                        class="h-12 w-full rounded-2xl border border-zinc-200 bg-[#f6f4ef] pr-4 pl-11 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-950"
-                                    />
-                                </div>
-                                <div
-                                    class="flex flex-wrap gap-2 xl:max-w-[520px] xl:justify-end"
-                                >
-                                    <button
-                                        v-for="view in savedViews"
-                                        :key="view.key"
-                                        type="button"
-                                        @click="selectedView = view.key"
-                                        :class="[
-                                            'cursor-pointer rounded-2xl border px-3 py-2 text-left transition',
-                                            selectedView === view.key
-                                                ? 'border-zinc-950 bg-zinc-950 text-white'
-                                                : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-950',
-                                        ]"
-                                    >
-                                        <div class="text-xs font-semibold">
-                                            {{ view.label }}
-                                        </div>
-                                        <div
-                                            :class="[
-                                                'mt-1 text-[11px]',
-                                                selectedView === view.key
-                                                    ? 'text-zinc-300'
-                                                    : 'text-zinc-500',
-                                            ]"
-                                        >
-                                            {{
-                                                savedViewCounts[view.key]
-                                            }}
-                                            records | {{ view.description }}
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="source in sourceOptions"
-                                    :key="source"
-                                    type="button"
-                                    @click="selectedSource = source"
-                                    :class="[
-                                        'cursor-pointer rounded-full px-3 py-2 text-xs font-semibold transition',
-                                        selectedSource === source
-                                            ? 'bg-zinc-950 text-white'
-                                            : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950 hover:text-zinc-950',
-                                    ]"
-                                >
-                                    {{ source }}
-                                </button>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="status in statusOptions"
-                                    :key="status"
-                                    type="button"
-                                    @click="selectedStatus = status"
-                                    :class="[
-                                        'cursor-pointer rounded-full px-3 py-2 text-xs font-semibold transition',
-                                        selectedStatus === status
-                                            ? 'bg-zinc-950 text-white'
-                                            : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950 hover:text-zinc-950',
-                                    ]"
-                                >
-                                    {{ status }}
-                                </button>
-                                <button
-                                    type="button"
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:border-zinc-950 hover:text-zinc-950"
-                                >
-                                    <Filter class="h-3.5 w-3.5" />
-                                    Saved filters active
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mt-5 space-y-3">
-                            <button
-                                v-for="lead in filteredLeads"
-                                :key="lead.id"
-                                type="button"
-                                @click="selectedLeadId = lead.id"
-                                :class="[
-                                    'w-full cursor-pointer rounded-[28px] border p-4 text-left transition sm:p-5',
-                                    selectedLeadId === lead.id
-                                        ? 'border-zinc-950 bg-[#faf9f6] shadow-[0_18px_48px_rgba(24,24,27,0.08)]'
-                                        : 'border-zinc-200 bg-white hover:border-zinc-950/40 hover:bg-[#faf9f6]',
-                                ]"
-                            >
-                                <div
-                                    class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between"
-                                >
-                                    <div class="min-w-0 flex-1">
-                                        <div
-                                            class="flex flex-wrap items-center gap-2"
-                                        >
-                                            <div
-                                                class="text-base font-semibold text-zinc-950"
-                                            >
-                                                {{ lead.fullName }}
-                                            </div>
+                                        <div class="lead-actions">
                                             <span
-                                                :class="[
-                                                    'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                                                    statusClasses[lead.status],
-                                                ]"
+                                                class="status-pill"
+                                                :class="lead.statusTone"
                                             >
                                                 {{ lead.status }}
                                             </span>
-                                            <span
-                                                :class="[
-                                                    'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                                                    priorityClasses[
-                                                        lead.priority
-                                                    ],
-                                                ]"
-                                            >
-                                                {{ lead.priority }} priority
-                                            </span>
-                                        </div>
-
-                                        <div class="mt-1 text-sm text-zinc-500">
-                                            @{{ lead.username }} •
-                                            {{ lead.role }} at
-                                            {{ lead.company }}
-                                        </div>
-
-                                        <div
-                                            class="mt-4 grid gap-3 text-sm text-zinc-600 sm:grid-cols-2"
-                                        >
-                                            <div class="min-w-0">
-                                                <div
-                                                    class="font-medium text-zinc-950"
-                                                >
-                                                    {{ lead.email }}
-                                                </div>
-                                                <div class="mt-1">
-                                                    {{ lead.phone }}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div
-                                                    class="font-medium text-zinc-950"
-                                                >
-                                                    {{ lead.source }} source
-                                                </div>
-                                                <div class="mt-1">
-                                                    Owner {{ lead.owner }} •
-                                                    {{ lead.lastTouch }}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mt-4 flex flex-wrap gap-2">
-                                            <span
-                                                class="rounded-full border border-zinc-200 bg-[#faf9f6] px-3 py-1.5 text-xs font-medium text-zinc-600"
-                                            >
-                                                {{ leadMetaById[lead.id].ownershipSince }}
-                                            </span>
-                                            <span
-                                                class="rounded-full border border-zinc-200 bg-[#faf9f6] px-3 py-1.5 text-xs font-medium text-zinc-600"
-                                            >
-                                                {{ leadMetaById[lead.id].statusContext }}
-                                            </span>
-                                            <span
-                                                v-if="lead.needsReply"
-                                                class="rounded-full border border-zinc-950 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-white"
-                                            >
-                                                {{ leadMetaById[lead.id].reminderAt }}
+                                            <span class="score-pill">
+                                                {{ lead.score }}
                                             </span>
                                         </div>
                                     </div>
+                                </div>
+                            </article>
 
-                                    <div
-                                        class="flex flex-col items-start gap-3 xl:min-w-[180px] xl:items-end"
-                                    >
-                                        <div class="text-right">
-                                            <div
-                                                class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                            >
-                                                Fit score
-                                            </div>
-                                            <div
-                                                class="mt-1 text-3xl font-semibold tracking-tight text-zinc-950"
-                                            >
-                                                {{ lead.score }}%
-                                            </div>
-                                        </div>
+                            <article class="panel panel-side">
+                                <div class="side-section">
+                                    <h2>Where the strongest leads come from</h2>
 
+                                    <div class="source-list">
                                         <div
-                                            class="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 xl:text-right"
+                                            v-for="row in sourceRows"
+                                            :key="row.name"
+                                            class="source-row"
                                         >
-                                            <div
-                                                class="font-medium text-zinc-950"
-                                            >
-                                                {{ lead.nextStep }}
-                                            </div>
-                                            <div class="mt-1">
-                                                Due {{ leadMetaById[lead.id].nextActionDue }}
+                                            <span>{{ row.name }}</span>
+                                            <div class="source-value">
+                                                <span class="source-line" />
+                                                <span>{{
+                                                    row.percentage
+                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </button>
 
-                            <div
-                                v-if="filteredLeads.length === 0"
-                                class="rounded-[28px] border border-dashed border-zinc-300 bg-[#faf9f6] p-8 text-center"
-                            >
-                                <div
-                                    class="text-lg font-semibold text-zinc-950"
-                                >
-                                    No leads match these filters.
-                                </div>
-                                <p class="mt-2 text-sm text-zinc-600">
-                                    Adjust source, status, or search to bring
-                                    records back into view.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                                <div class="side-section">
+                                    <h3>Follow-up queue</h3>
 
-                    <div class="space-y-6">
-                        <section
-                            class="rounded-[34px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:p-6"
-                        >
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <p
-                                        class="text-xs font-semibold tracking-[0.22em] text-zinc-500 uppercase"
-                                    >
-                                        Lead profile
-                                    </p>
-                                    <h2
-                                        class="mt-2 text-2xl font-semibold tracking-tight text-zinc-950"
-                                    >
-                                        {{
-                                            selectedLead?.fullName ||
-                                            'No lead selected'
-                                        }}
-                                    </h2>
-                                    <p class="mt-2 text-sm text-zinc-600">
-                                        {{ selectedLead?.role }} at
-                                        {{ selectedLead?.company }}
-                                    </p>
-                                </div>
-
-                                <div
-                                    v-if="selectedLead"
-                                    class="flex h-14 w-14 items-center justify-center rounded-[20px] bg-zinc-950 text-lg font-semibold text-white"
-                                >
-                                    {{ selectedLead.fullName.charAt(0) }}
-                                </div>
-                            </div>
-
-                            <template v-if="selectedLead">
-                                <div
-                                    class="mt-6 rounded-[28px] border border-zinc-200 bg-[#faf9f6] p-5"
-                                >
-                                    <div
-                                        class="flex items-center justify-between gap-4"
-                                    >
-                                        <div>
-                                            <div
-                                                class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                            >
-                                                Conversion readiness
+                                    <div class="queue-list">
+                                        <div
+                                            v-for="item in followUpQueue"
+                                            :key="item.name"
+                                            class="queue-row"
+                                        >
+                                            <div class="queue-name">
+                                                {{ item.name }}
                                             </div>
-                                            <div
-                                                class="mt-2 text-4xl font-semibold tracking-tight text-zinc-950"
-                                            >
-                                                {{ selectedLead.score }}%
-                                            </div>
-                                        </div>
-                                        <span
-                                            :class="[
-                                                'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                                                statusClasses[
-                                                    selectedLead.status
-                                                ],
-                                            ]"
-                                        >
-                                            {{ selectedLead.status }}
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        class="mt-4 h-2.5 rounded-full bg-zinc-200"
-                                    >
-                                        <div
-                                            class="h-2.5 rounded-full bg-zinc-950"
-                                            :style="{
-                                                width: `${selectedLead.score}%`,
-                                            }"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 bg-white p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Status context
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm leading-7 text-zinc-700"
-                                        >
-                                            {{ selectedLeadMeta?.statusContext }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 bg-white p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Reminder
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLeadMeta?.reminderAt }}
-                                        </div>
-                                        <div class="mt-1 text-xs text-zinc-500">
-                                            Next action due
-                                            {{ selectedLeadMeta?.nextActionDue }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div
-                                            class="flex items-center gap-2 text-sm text-zinc-500"
-                                        >
-                                            <Mail class="h-4 w-4" />
-                                            Email
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.email }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div
-                                            class="flex items-center gap-2 text-sm text-zinc-500"
-                                        >
-                                            <Phone class="h-4 w-4" />
-                                            Number
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.phone }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Username
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            @{{ selectedLead.username }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Age
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.age }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Company
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.company }} -
-                                            {{ selectedLead.companySize }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Location
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.city }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Owner
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLead.owner }}
-                                        </div>
-                                        <div class="mt-1 text-xs text-zinc-500">
-                                            {{ selectedLeadMeta?.ownershipSince }}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="rounded-[22px] border border-zinc-200 p-4"
-                                    >
-                                        <div class="text-sm text-zinc-500">
-                                            Lead created
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm font-medium text-zinc-950"
-                                        >
-                                            {{ selectedLeadMeta?.createdAt }}
-                                        </div>
-                                        <div class="mt-1 text-xs text-zinc-500">
-                                            Last touch {{ selectedLead.lastTouch }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5">
-                                    <div
-                                        class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                    >
-                                        Tags
-                                    </div>
-                                    <div class="mt-3 flex flex-wrap gap-2">
-                                        <span
-                                            v-for="tag in selectedLead.tags"
-                                            :key="tag"
-                                            class="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700"
-                                        >
-                                            {{ tag }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-5">
-                                    <div
-                                        class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                    >
-                                        Lead notes
-                                    </div>
-                                    <div class="mt-3 space-y-3">
-                                        <article
-                                            v-for="note in selectedLeadNotes"
-                                            :key="`${note.author}-${note.time}`"
-                                            class="rounded-[22px] border border-zinc-200 bg-white p-4"
-                                        >
-                                            <div
-                                                class="flex items-center justify-between gap-3"
-                                            >
-                                                <div
-                                                    class="text-sm font-semibold text-zinc-950"
-                                                >
-                                                    {{ note.author }}
-                                                </div>
-                                                <div class="text-xs text-zinc-500">
-                                                    {{ note.time }}
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="mt-3 text-sm leading-7 text-zinc-600"
-                                            >
-                                                {{ note.body }}
-                                            </div>
-                                        </article>
-                                    </div>
-                                </div>
-                            </template>
-                        </section>
-
-                        <section
-                            class="rounded-[34px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.05)] sm:p-6"
-                        >
-                            <div
-                                class="flex items-center justify-between gap-3"
-                            >
-                                <div>
-                                    <p
-                                        class="text-xs font-semibold tracking-[0.22em] text-zinc-500 uppercase"
-                                    >
-                                        Next actions
-                                    </p>
-                                    <h2
-                                        class="mt-2 text-2xl font-semibold tracking-tight text-zinc-950"
-                                    >
-                                        What sales should do next.
-                                    </h2>
-                                </div>
-                                <div
-                                    class="rounded-full border border-zinc-200 bg-[#f6f4ef] px-3 py-2 text-xs font-semibold text-zinc-700"
-                                >
-                                    Follow-up
-                                </div>
-                            </div>
-
-                            <div
-                                v-if="selectedLead && selectedLeadMeta"
-                                class="mt-5 rounded-[26px] border border-zinc-200 bg-[#faf9f6] p-5"
-                            >
-                                <div
-                                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-                                >
-                                    <div>
-                                        <div
-                                            class="text-xs font-semibold tracking-[0.18em] text-zinc-500 uppercase"
-                                        >
-                                            Primary next step
-                                        </div>
-                                        <div
-                                            class="mt-3 text-xl font-semibold tracking-tight text-zinc-950"
-                                        >
-                                            {{ selectedLead.nextStep }}
-                                        </div>
-                                        <div
-                                            class="mt-2 text-sm leading-7 text-zinc-600"
-                                        >
-                                            {{ selectedLeadMeta.statusContext }}
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="rounded-[20px] border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 sm:text-right"
-                                    >
-                                        <div class="font-medium text-zinc-950">
-                                            {{ selectedLeadMeta.nextActionDue }}
-                                        </div>
-                                        <div class="mt-1">
-                                            Owner {{ selectedLead.owner }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-5 space-y-3">
-                                <article
-                                    v-for="action in selectedLeadActionCards"
-                                    :key="action.title"
-                                    class="flex items-start justify-between gap-4 rounded-[24px] border border-zinc-200 p-4"
-                                >
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-950 text-white"
-                                        >
-                                            <component
-                                                :is="action.icon"
-                                                class="h-4 w-4"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div
-                                                class="text-sm font-semibold text-zinc-950"
-                                            >
-                                                {{ action.title }}
-                                            </div>
-                                            <div
-                                                class="mt-1 text-sm text-zinc-600"
-                                            >
-                                                {{ action.detail }}
+                                            <div class="queue-note">
+                                                {{ item.note }}
                                             </div>
                                         </div>
                                     </div>
-                                    <ChevronRight
-                                        class="mt-1 h-4 w-4 text-zinc-400"
-                                    />
-                                </article>
-                            </div>
-                        </section>
-
-                        <section
-                            class="rounded-[34px] border border-zinc-200 bg-zinc-950 p-5 text-white shadow-[0_20px_60px_rgba(24,24,27,0.12)] sm:p-6"
-                        >
-                            <p
-                                class="text-xs font-semibold tracking-[0.22em] text-zinc-400 uppercase"
-                            >
-                                Recent activity
-                            </p>
-                            <h2
-                                class="mt-3 text-2xl font-semibold tracking-tight"
-                            >
-                                Timeline for the selected lead.
-                            </h2>
-                            <p class="mt-3 text-sm leading-7 text-zinc-300">
-                                A clearer activity trail helps sales and ops
-                                understand what changed, who touched the lead,
-                                and what should happen next.
-                            </p>
-
-                            <div class="mt-5 space-y-3">
-                                <article
-                                    v-for="item in selectedLeadActivity"
-                                    :key="`${item.title}-${item.time}`"
-                                    class="rounded-[22px] border border-white/10 bg-white/5 p-4"
-                                >
-                                    <div
-                                        class="flex items-start justify-between gap-3"
-                                    >
-                                        <div class="text-sm font-semibold text-white">
-                                            {{ item.title }}
-                                        </div>
-                                        <div class="text-xs text-zinc-400">
-                                            {{ item.time }}
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="mt-3 text-sm leading-7 text-zinc-300"
-                                    >
-                                        {{ item.detail }}
-                                    </div>
-                                </article>
-                            </div>
+                                </div>
+                            </article>
                         </section>
                     </div>
-                </section>
-            </main>
+                </main>
+            </div>
         </div>
     </PublicLayout>
 </template>
+
+<style scoped>
+.dashboard-shell {
+    --black: #0d0d0d;
+    --white: #ffffff;
+    --bg: #f5f1e8;
+    --panel: #fffdf9;
+    --line: #e0d6c7;
+    --text: #1a1713;
+    --muted: #776b5b;
+    --gold: #b8892a;
+    --green-soft: #edf7ee;
+    --green-text: #2d7a34;
+    --amber-soft: #f8f0df;
+    --amber-text: #b8892a;
+    --fd: 'Playfair Display', serif;
+    --fb: 'Outfit', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    background: #fbf8f2;
+    color: var(--text);
+    font-family: var(--fb);
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 253, 249, 0.96);
+    padding: 0.75rem 1.75rem;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+}
+
+.brand-mark {
+    display: flex;
+    height: 32px;
+    width: 32px;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(
+        0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px)
+    );
+    background: var(--black);
+    color: #d4a84b;
+    font-family: var(--fm);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+}
+
+.brand-text {
+    color: var(--black);
+    font-family: var(--fd);
+    font-size: 1.32rem;
+    font-weight: 500;
+}
+
+.brand-text span {
+    color: var(--gold);
+}
+
+.crumb {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #857869;
+    font-size: 0.95rem;
+}
+
+.generate-button {
+    border: 1px solid #d3c7b7;
+    background: var(--white);
+    padding: 0.8rem 1.15rem;
+    color: var(--black);
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 8px 18px rgba(13, 13, 13, 0.04);
+}
+
+.user-name,
+.logout-link {
+    color: #5a4f40;
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.avatar-pill {
+    display: flex;
+    height: 2.1rem;
+    width: 2.1rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--black);
+    color: var(--white);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dashboard-layout {
+    display: grid;
+    min-height: calc(100vh - 73px);
+    grid-template-columns: 215px 1fr;
+}
+
+.sidebar {
+    border-right: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.56);
+    padding: 1.55rem 0;
+}
+
+.sidebar-inner {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-bottom-nav {
+    margin-top: 2rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.95rem 1.55rem;
+    color: #4a4034;
+    font-size: 0.98rem;
+    text-decoration: none;
+}
+
+.sidebar-link.active {
+    background: rgba(13, 13, 13, 0.04);
+    color: var(--black);
+    font-weight: 600;
+}
+
+.sidebar-bullet {
+    height: 6px;
+    width: 6px;
+    background: #4b4035;
+}
+
+.dashboard-main {
+    background: var(--bg);
+    padding: 1.6rem 1.6rem 2rem;
+}
+
+.dashboard-content {
+    width: 100%;
+    max-width: none;
+}
+
+.hero-copy h1,
+.panel h2,
+.side-section h3 {
+    font-family: var(--fd);
+    letter-spacing: -0.02em;
+}
+
+.hero-copy h1 {
+    font-size: clamp(2.1rem, 3.2vw, 3rem);
+    font-weight: 600;
+}
+
+.hero-copy p {
+    max-width: 42rem;
+    margin-top: 0.55rem;
+    color: var(--muted);
+    font-size: 1.05rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.1rem;
+    margin-top: 1.6rem;
+}
+
+.stat-card,
+.panel {
+    border: 1px solid #d8cebe;
+    background: var(--panel);
+    box-shadow: 0 10px 30px rgba(13, 13, 13, 0.04);
+}
+
+.stat-card {
+    min-height: 10.5rem;
+    padding: 1.4rem 1.25rem;
+}
+
+.stat-label {
+    color: #6f6557;
+    font-size: 0.84rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    margin-top: 1.55rem;
+    font-family: var(--fd);
+    font-size: 2.55rem;
+    font-weight: 700;
+}
+
+.stat-value span {
+    margin-left: 0.35rem;
+    color: var(--gold);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1.08fr);
+    gap: 1.1rem;
+    margin-top: 1.75rem;
+}
+
+.panel {
+    padding: 1.45rem 1.35rem 1.25rem;
+}
+
+.panel h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.lead-list {
+    margin-top: 1.15rem;
+}
+
+.lead-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #e6ddcf;
+    padding: 0.95rem 0;
+}
+
+.lead-row:last-child,
+.queue-row:last-child {
+    border-bottom: none;
+}
+
+.lead-name,
+.queue-name {
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.lead-meta,
+.queue-note {
+    color: #817462;
+    font-size: 0.98rem;
+    line-height: 1.2;
+}
+
+.lead-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.status-pill,
+.score-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.26rem 0.72rem;
+    font-size: 0.88rem;
+}
+
+.status-pill.green {
+    background: var(--green-soft);
+    color: var(--green-text);
+}
+
+.status-pill.amber {
+    background: var(--amber-soft);
+    color: var(--amber-text);
+}
+
+.score-pill {
+    background: #fbf1da;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.panel-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.side-section + .side-section {
+    margin-top: 1.45rem;
+}
+
+.side-section h3 {
+    font-size: 1.18rem;
+    font-weight: 600;
+}
+
+.source-list,
+.queue-list {
+    margin-top: 1.05rem;
+}
+
+.source-row,
+.queue-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.52rem 0;
+}
+
+.source-row {
+    color: #40362b;
+    font-size: 1rem;
+}
+
+.source-value {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #6f6455;
+}
+
+.source-line {
+    height: 11px;
+    width: 1px;
+    background: var(--gold);
+}
+
+.queue-row {
+    border-bottom: 1px solid #e6ddcf;
+    align-items: flex-start;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 0.5rem 1rem;
+    }
+
+    .sidebar-inner {
+        min-height: auto;
+        gap: 0.35rem;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .sidebar-bottom-nav {
+        margin-top: 0;
+    }
+
+    .sidebar-link {
+        padding: 0.7rem 0.9rem;
+    }
+
+    .dashboard-content {
+        max-width: none;
+    }
+}
+
+@media (max-width: 820px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .header-left,
+    .header-right {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-main {
+        padding: 1.2rem 1rem 1.4rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lead-row,
+    .source-row,
+    .queue-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .lead-actions {
+        justify-content: flex-start;
+    }
+}
+</style>
